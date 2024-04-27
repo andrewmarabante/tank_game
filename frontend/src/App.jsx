@@ -12,12 +12,6 @@ function App() {
 
     socketInstance.on('connect', () => {
       console.log('Connected to server');
-
-      socketInstance.on('click', function(data){
-        console.log(data.message)
-        const newMessage = data.message;
-        setMessage(newMessage)
-      })
     });
   
     return () => {

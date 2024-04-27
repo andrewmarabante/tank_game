@@ -22,9 +22,9 @@ server.listen(4000, ()=>{
 
 var io = socket(server);
 
-io.on('connection', function(socket){
+io.on('connection', (socket) => {
 
-  socket.on('click', function(data){
+  socket.on('click', (data) => {
     io.sockets.emit('click', data)
   })
 })
