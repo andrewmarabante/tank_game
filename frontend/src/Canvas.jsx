@@ -5,8 +5,6 @@ function Canvas({map, players}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
-    const tilesInRow = 11;
-
 
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
@@ -29,6 +27,7 @@ function Canvas({map, players}){
       const canvas = canvasRef.current
       const ctx = canvas.getContext('2d')
       let currentImage;
+      let tilesInRow;
 
 
       const w = map.length * tileSize;
@@ -43,21 +42,25 @@ function Canvas({map, players}){
         for(let col = 0; col < map.length; col++){
           const {id, gid} = map[row][col]
 
-          const imageRow = parseInt(id/ tilesInRow)
-          const imageCol = id % tilesInRow
-
         if(gid < 78){
           currentImage = grass
+          tilesInRow = 11
         }
         else if(gid < 155){
           currentImage = desert
+          tilesInRow = 11
         }
         else if(gid < 171){
           currentImage = fence
+          tilesInRow = 4
         }
         else{
           currentImage = water
+          tilesInRow = 4
         }
+
+        const imageRow = parseInt(id/ tilesInRow)
+        const imageCol = id % tilesInRow
 
         ctx.drawImage(
               currentImage,

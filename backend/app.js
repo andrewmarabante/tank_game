@@ -22,7 +22,7 @@ server.listen(4000, ()=>{
 var io = socket(server);
 
 const TICK_RATE = 30;
-const SPEED = 2
+const SPEED = 5
 
 const players = [];
 const inputsMap = {}
