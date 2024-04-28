@@ -21,6 +21,8 @@ function Canvas({map, players}){
     const tank = new Image();
     tank.src = '/src/assets/tank.png'
 
+    const quarterAngle = Math.PI/4;
+
   
     useEffect(() => {
 
@@ -77,13 +79,49 @@ function Canvas({map, players}){
 
       players.map((player)=>{
 
+        console.log(player)
+
+        ctx.translate(player.x, player.y)
+
+        if(player.direction === 'upLeft'){
+        ctx.rotate(quarterAngle)
+        }
+        else if(player.direction === 'up'){
+          ctx.rotate(2*quarterAngle)
+        }
+        else if(player.direction === 'upRight'){
+          ctx.rotate(3*quarterAngle)
+        }
+        else if(player.direction === 'right'){
+          ctx.rotate(4*quarterAngle)
+        }
+        else if(player.direction === 'downRight'){
+          ctx.rotate(5*quarterAngle)
+        }
+        else if(player.direction === 'down'){
+          ctx.rotate(6*quarterAngle)
+        }
+        else if(player.direction === 'downLeft'){
+          ctx.rotate(7*quarterAngle)
+        }
+        else if(player.direction === 'left')
+        {
+          ctx.rotate(0)
+        }
+
+        ctx.translate(-player.x, -player.y); 
+
         ctx.drawImage(
         tank,
-        player.x,
-        player.y,
+        player.x -30,
+        player.y -20,
         60,
         40
-      )})
+      )
+
+      ctx.setTransform(1,0,0,1,0,0);
+    
+    })
 
 
     }, [players])

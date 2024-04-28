@@ -37,30 +37,38 @@ function tick(){
       if(inputs.up && inputs.left){
         player.y -= SPEED *.71
         player.x -= SPEED *.71
+        player.direction = 'upLeft'
       }
       else if(inputs.up && inputs.right){
         player.y -= SPEED *.71
         player.x += SPEED  *.71   
+        player.direction = 'upRight'
       }
       else if(inputs.down && inputs.right){
         player.y += SPEED *.71
-        player.x += SPEED *.71      
+        player.x += SPEED *.71    
+        player.direction = 'downRight'  
        }
       else if(inputs.down && inputs.left){
         player.y += SPEED *.71
-        player.x -= SPEED *.71        
+        player.x -= SPEED *.71 
+        player.direction = 'downLeft'       
       }
       else if(inputs.up){
         player.y -= SPEED
+        player.direction = 'up'
       }
       else if(inputs.down){
         player.y += SPEED
+        player.direction = 'down'
       }
       else if(inputs.left){
         player.x -= SPEED
+        player.direction = 'left'
       }
       else if(inputs.right){
         player.x += SPEED
+        player.direction = 'right'
       }
 
     })
@@ -78,7 +86,8 @@ async function main(){
     players.push({
       id: socket.id,
       x: 0,
-      y: 0
+      y: 0,
+      direction: 'up',
     })
     inputsMap[socket.id] = {
       up: false,
