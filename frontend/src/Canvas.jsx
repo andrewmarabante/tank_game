@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map}){
+function Canvas({map, players}){
 
-  
     const canvasRef = useRef(null)
     const tileSize = 16;
     const tilesInRow = 11;
+
 
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
@@ -19,6 +19,9 @@ function Canvas({map}){
     
     const water = new Image();
     water.src = '/src/assets/grassMap/Water.png'
+
+    const tank = new Image();
+    tank.src = '/src/assets/tank.png'
 
   
     useEffect(() => {
@@ -34,8 +37,6 @@ function Canvas({map}){
 
       canvas.width = w;
       canvas.height = h;
-
-      const gids = []
 
 
       for(let row = 0; row < map.length; row++){
@@ -58,7 +59,6 @@ function Canvas({map}){
           currentImage = water
         }
 
-
         ctx.drawImage(
               currentImage,
               imageCol * tileSize,
@@ -72,8 +72,20 @@ function Canvas({map}){
           )}
       }
 
+      console.log(players)
+      players.map((player)=>{
 
-    }, [])
+        console.log(player)
+        ctx.drawImage(
+        tank,
+        player.x,
+        player.y,
+        60,
+        40
+      )})
+
+
+    }, [players])
     
     return <canvas ref={canvasRef} style={{backgroundColor: '#c0d470'}}/>
 

@@ -9,6 +9,14 @@ function App() {
   const [map, setMap] = useState(null)
   const canvasRef = useRef(null);
   const initialized = useRef(false)
+  const [players, setPlayers] = useState([])
+
+  const inputs = {
+    up: 'false',
+    down: 'false',
+    right: 'false',
+    left: 'false',
+  }
 
   useEffect(()=>{
 
@@ -20,11 +28,10 @@ function App() {
 
     socketInstance.on('connect', () => {
       console.log('Connected to server');
-    });}
+    });
+  }
   
-    return () => {
-      socketInstance.off('click');
-    };
+
   },[]);
 
   useEffect(() => {
@@ -34,18 +41,61 @@ function App() {
         setMap(map)
       })
 
-      socket.on('click', function (data) {
-        console.log(data.message);
-        const newMessage = data.message;
-        setMessage(newMessage);
+      socket.on('players', function (serverPlayers) {
+       setPlayers(serverPlayers)
       });
+
+      window.addEventListener('keydown', handleKeyDown)
+      window.addEventListener('keyup', handleKeyUp)
+
+    }}, [socket]);
+
+  
+
+  function handleKeyDown(e){
+
+    if(e.key == 'w'){
+      inputs['up'] = true
     }
-  }, [socket]);
+    else if(e.key == 's'){
+      inputs['down'] = true
+    }
+    else if(e.key == 'd'){
+      inputs['right'] = true
+    }
+    else if(e.key == 'a'){
+      inputs['left'] = true
+    }
+
+    console.log('down')
+    socket.emit('input', inputs)  
+
+  }
+
+
+  function handleKeyUp(e){
+    
+    if(e.key == 'w'){
+      inputs['up'] = false
+    }
+    else if(e.key == 's'){
+      inputs['down'] = false
+    }
+    else if(e.key == 'd'){
+      inputs['right'] = false
+    }
+    else if(e.key == 'a'){
+      inputs['left'] = false
+    }
+
+    console.log('up')
+    socket.emit('input', inputs)
+  }
 
 
   return (
     <div style={{height:'200px'}}>
-      {map && <Canvas map = {map}/>}
+      {map && <Canvas map = {map} players = {players}/>}
     </div>
   )
 }

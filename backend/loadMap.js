@@ -13,7 +13,6 @@ async function loadMap(){
 
   const tiles = map.layers[0].tiles;
 
-  console.log(map)
   const map2D = []
 
   for(let row = 0; row < map.height; row++){

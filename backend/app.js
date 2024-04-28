@@ -21,6 +21,35 @@ server.listen(4000, ()=>{
 
 var io = socket(server);
 
+const TICK_RATE = 30;
+const SPEED = 2
+
+const players = [];
+const inputsMap = {}
+
+function tick(){
+    players.map((player)=> {
+
+      const inputs = inputsMap[player.id]
+
+      if(inputs.up){
+        player.y -= SPEED
+      }
+      else if(inputs.down){
+        player.y += SPEED
+      }
+      else if(inputs.left){
+        player.x -= SPEED
+      }
+      else if(inputs.right){
+        player.x += SPEED
+      }
+
+    })
+
+    io.emit('players', players)
+}
+
 async function main(){
 
   const map2D = await loadMap()
@@ -28,18 +57,34 @@ async function main(){
   io.on('connection', (socket) => {
 
     console.log('Made Socket Connection: ' +socket.id)
-  
+    players.push({
+      id: socket.id,
+      x: 0,
+      y: 0
+    })
+    inputsMap[socket.id] = {
+      up: false,
+      down: false,
+      right: false,
+      left: false
+    };
+
     socket.emit('map', map2D)
   
   
-    socket.on('click', (data) => {
-      io.sockets.emit('click', data)
+    socket.on('input', (inputs) => {
+      console.log(inputsMap)
+      inputsMap[socket.id] = inputs;
     })
   })
+
+  setInterval(tick, 1000 / TICK_RATE)
 
 }
 
 main();
+
+
 
 
 
