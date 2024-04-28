@@ -79,8 +79,6 @@ function Canvas({map, players}){
 
       players.map((player)=>{
 
-        console.log(player)
-
         ctx.translate(player.x, player.y)
 
         if(player.direction === 'upLeft'){

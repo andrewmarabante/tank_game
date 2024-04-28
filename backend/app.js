@@ -24,7 +24,7 @@ var io = socket(server);
 const TICK_RATE = 30;
 const SPEED = 3
 
-const players = [];
+let players = [];
 const inputsMap = {}
 
 function tick(){
@@ -83,12 +83,14 @@ async function main(){
   io.on('connection', (socket) => {
 
     console.log('Made Socket Connection: ' +socket.id)
+
     players.push({
       id: socket.id,
       x: 0,
       y: 0,
       direction: 'up',
     })
+
     inputsMap[socket.id] = {
       up: false,
       down: false,
@@ -100,9 +102,14 @@ async function main(){
   
   
     socket.on('input', (inputs) => {
-      console.log(inputs)
+      console.log('work')
       inputsMap[socket.id] = inputs;
-      console.log(inputsMap)
+    })
+
+    socket.on('disconnect', () => {
+      console.log('before' ,players)
+      players = players.filter((player) => { return player.id !== socket.id})
+      console.log('after', players)
     })
   })
 
