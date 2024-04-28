@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "tiled-parser": "^0.1.2",
+    "tmx-parser": "^1.5.0"
+  }
+}

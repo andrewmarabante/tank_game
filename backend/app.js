@@ -6,6 +6,24 @@ var logger = require('morgan');
 var socket = require('socket.io');
 var http = require('http');
 
+const tmx = require('tmx-parser')
+
+let map = null;
+
+async function loadMap(){
+  map = await new Promise((resolve, reject) => {
+
+    tmx.parseFile('./maps/Grassland.tmx', function(err, mapLoad) {
+      if (err) return  reject(err);
+      resolve(mapLoad)
+    });
+
+  })
+}
+
+loadMap();
+
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -23,6 +41,11 @@ server.listen(4000, ()=>{
 var io = socket(server);
 
 io.on('connection', (socket) => {
+
+  console.log('Made Socket Connection: ' +socket.id)
+
+
+  console.log(map.layers[0])
 
   socket.on('click', (data) => {
     io.sockets.emit('click', data)

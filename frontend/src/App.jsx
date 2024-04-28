@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import './App.css'
 import io from 'socket.io-client'
+import Canvas from './Canvas'
 
 function App() {
   const [socket,setSocket] = useState(null)
   const [message, setMessage] = useState('old')
+  const canvasRef = useRef(null);
+  const initialized = useRef(false)
 
   useEffect(()=>{
+
+    if(!initialized.current)
+    {
     var socketInstance = io('http://localhost:4000', { transports : ['websocket'] });
-    setSocket(socketInstance);
+    setSocket(socketInstance)
+    initialized.current = true;
 
     socketInstance.on('connect', () => {
       console.log('Connected to server');
-    });
+    });}
   
     return () => {
       socketInstance.off('click');
@@ -38,9 +45,8 @@ function handleClick(){
 }
 
   return (
-    <div>
-      <div>{message}</div>
-      <button onClick={handleClick}>Do Something</button>
+    <div style={{height:'200px'}}>
+      <Canvas/>
     </div>
   )
 }
