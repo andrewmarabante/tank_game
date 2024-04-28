@@ -75,10 +75,8 @@ function Canvas({map, players}){
           )}
       }
 
-      console.log(players)
       players.map((player)=>{
 
-        console.log(player)
         ctx.drawImage(
         tank,
         player.x,

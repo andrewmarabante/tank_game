@@ -22,7 +22,7 @@ server.listen(4000, ()=>{
 var io = socket(server);
 
 const TICK_RATE = 30;
-const SPEED = 5
+const SPEED = 3
 
 const players = [];
 const inputsMap = {}
@@ -32,7 +32,25 @@ function tick(){
 
       const inputs = inputsMap[player.id]
 
-      if(inputs.up){
+      // console.log(inputs)
+
+      if(inputs.up && inputs.left){
+        player.y -= SPEED *.71
+        player.x -= SPEED *.71
+      }
+      else if(inputs.up && inputs.right){
+        player.y -= SPEED *.71
+        player.x += SPEED  *.71   
+      }
+      else if(inputs.down && inputs.right){
+        player.y += SPEED *.71
+        player.x += SPEED *.71      
+       }
+      else if(inputs.down && inputs.left){
+        player.y += SPEED *.71
+        player.x -= SPEED *.71        
+      }
+      else if(inputs.up){
         player.y -= SPEED
       }
       else if(inputs.down){
@@ -73,8 +91,9 @@ async function main(){
   
   
     socket.on('input', (inputs) => {
-      console.log(inputsMap)
+      console.log(inputs)
       inputsMap[socket.id] = inputs;
+      console.log(inputsMap)
     })
   })
 

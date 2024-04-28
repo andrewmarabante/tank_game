@@ -11,11 +11,13 @@ function App() {
   const initialized = useRef(false)
   const [players, setPlayers] = useState([])
 
+  const keys = new Map();
+
   const inputs = {
-    up: 'false',
-    down: 'false',
-    right: 'false',
-    left: 'false',
+    up: false,
+    down: false,
+    right: false,
+    left: false,
   }
 
   useEffect(()=>{
@@ -55,41 +57,67 @@ function App() {
   function handleKeyDown(e){
 
     if(e.key == 'w'){
-      inputs['up'] = true
+      keys.set(e.key, true)
     }
     else if(e.key == 's'){
-      inputs['down'] = true
+      keys.set(e.key, true)
     }
     else if(e.key == 'd'){
-      inputs['right'] = true
+      keys.set(e.key, true)
     }
     else if(e.key == 'a'){
-      inputs['left'] = true
+      keys.set(e.key, true)
     }
 
-    console.log('down')
+
+    if(keys.get('w')){
+      inputs["up"] = true
+    }
+    if(keys.get("s")){
+      inputs["down"] = true
+    }
+    if(keys.get("d")){
+      inputs["right"] = true
+    }
+    if(keys.get("a")){
+      inputs["left"] = true
+    }
+
     socket.emit('input', inputs)  
 
   }
 
 
   function handleKeyUp(e){
-    
+
     if(e.key == 'w'){
-      inputs['up'] = false
+      keys.set(e.key, false)
     }
     else if(e.key == 's'){
-      inputs['down'] = false
+      keys.set(e.key, false)
     }
     else if(e.key == 'd'){
-      inputs['right'] = false
+      keys.set(e.key, false)
     }
     else if(e.key == 'a'){
-      inputs['left'] = false
+      keys.set(e.key, false)
     }
 
-    console.log('up')
+    if(!keys.get('w')){
+      inputs["up"] = false
+    }
+    if(!keys.get("s")){
+      inputs["down"] = false
+    }
+    if(!keys.get("d")){
+      inputs["right"] = false
+    }
+    if(!keys.get("a")){
+      inputs["left"] = false
+    }
+    
     socket.emit('input', inputs)
+
   }
 
 
