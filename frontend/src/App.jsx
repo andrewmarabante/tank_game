@@ -6,6 +6,7 @@ import Canvas from './Canvas'
 function App() {
   const [socket,setSocket] = useState(null)
   const [message, setMessage] = useState('old')
+  const [map, setMap] = useState(null)
   const canvasRef = useRef(null);
   const initialized = useRef(false)
 
@@ -28,6 +29,11 @@ function App() {
 
   useEffect(() => {
     if (socket) {
+
+      socket.on('map', function(map) {
+        setMap(map)
+      })
+
       socket.on('click', function (data) {
         console.log(data.message);
         const newMessage = data.message;
@@ -37,16 +43,9 @@ function App() {
   }, [socket]);
 
 
-function handleClick(){
-  console.log('handler')
-  socket.emit('click', {
-    message: 'new'
-  })
-}
-
   return (
     <div style={{height:'200px'}}>
-      <Canvas/>
+      {map && <Canvas map = {map}/>}
     </div>
   )
 }
