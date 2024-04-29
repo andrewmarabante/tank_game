@@ -37,7 +37,6 @@ function isColliding(object, terrain){
     for(let structures = 0 ; structures < terrain.length; structures++){
       for(let i = 0; i < terrain[structures].length; i++){
         if(
-            //working on this. TERRAIN IS 2 DIMENSIONAL!!!!!
           //checks if two rectangles are colliding
           object.x < terrain[structures][i].x + terrain[structures][i].w &&
           object.x + object.w > terrain[structures][i].x &&
@@ -49,17 +48,22 @@ function isColliding(object, terrain){
     }
       return false
   }else if(object.ammo === 'reg'){
-// working on this!! need to do this
+
     let radius = 5;
+
     //checks if circle and rectangle are colliding
-    var distX = Math.abs(object.x - terrain.x-terrain.w/2);
-    var distY = Math.abs(object.y - terrain.y-terrain.h/2);
+    for(let i = 0; i < terrain[0].length; i++){
 
-    if (distX > (terrain.w/2 + radius)) { return false; }
-    if (distY > (terrain.h/2 + radius)) { return false; }
+      var distX = Math.abs(object.x - terrain[0][i].x+terrain[0][i].w/2);
+      var distY = Math.abs(object.y - terrain[0][i].y+terrain[0][i].h/2);
 
-    if (distX <= (terrain.w/2)) { return true; } 
-    if (distY <= (terrain.h/2)) { return true; }
+      if( (distX < (terrain[0][i].w/2 + radius)) && (distY < (terrain[0][i].h/2 + radius)) ){
+       
+        if (distX <= (terrain[0][i].w/2)) { return true; } 
+        if (distY <= (terrain[0][i].h/2)) { return true; }
+      }
+  }
+   return false
   }
 }
 
@@ -129,7 +133,8 @@ function tick(){
       })
 
       if(isColliding(projectile, terrain)){
-        console.log('hit')
+        projectile.collide = true
+        projectiles = projectiles.filter(projectile => projectile.collide !== true)
       }
     })
 
@@ -212,6 +217,7 @@ async function main(){
         x: player.x,
         y: player.y,
         ammo: 'reg',
+        collide: false,
       })
 
     })
