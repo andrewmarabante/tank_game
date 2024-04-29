@@ -30,7 +30,7 @@ function Canvas({map, players, socket, projectiles}){
     useEffect(() => {
 
       const canvas = canvasRef.current
-      canvas.height = window.innerHeight;
+      canvas.height = window.innerHeight
       canvas.width = window.innerWidth
       const ctx = canvas.getContext('2d')
 

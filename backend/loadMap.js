@@ -23,6 +23,7 @@ async function loadMap(){
     }
     map2D.push(tileRow)
   }
+
   return map2D
 
 }
