@@ -79,6 +79,16 @@ function tick(){
     projectiles.map( projectile => {
       projectile.x += Math.cos(projectile.angle) * PROJECTILE_SPEED
       projectile.y += Math.sin(projectile.angle) * PROJECTILE_SPEED
+
+      players.map(player => {
+        const distance = Math.sqrt((player.x - projectile.x) **2 + (player.y - projectile.y) **2 )
+
+        if(distance <=25 && projectile.id !== player.id){
+          console.log('hit')
+          player.x = 0
+          player.y = 0 
+        }
+      })
     })
 
     io.emit('players', players)
@@ -118,8 +128,8 @@ async function main(){
     socket.on('fire', (angle) => {
       const player = players.find((player) => player.id === socket.id)
   
-      console.log(angle)
       projectiles.push({
+        id: socket.id,
         angle : angle,
         x: player.x,
         y: player.y,

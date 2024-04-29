@@ -40,8 +40,6 @@ function Canvas({map, players, socket, projectiles}){
       let camX = 0;
       let camY = 0;
 
-      console.log('canHei',canvas.height)
-      console.log('canWid', canvas.width)
 
 
       if(players.length > 0){const myPlayer = players.find((player) => player.id == socket.id)
@@ -126,11 +124,12 @@ function Canvas({map, players, socket, projectiles}){
 
         ctx.translate(-player.x + camX, -player.y + camY); 
 
+        //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
         ctx.drawImage(
         tank,
         player.x -30 -camX,
         player.y -20 -camY,
-        60,
+        40,
         40
       )
 
@@ -143,6 +142,8 @@ function Canvas({map, players, socket, projectiles}){
 
         ctx.fillStyle = 'blue';
         ctx.beginPath();
+
+        //arc(x, y, radius, startAngle, endAngle, counterclockwise)
         ctx.arc(projectile.x - camX, projectile.y - camY, 5, 0, 2*Math.PI)
         ctx.fill();
 
