@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map, players}){
+function Canvas({map, players, socket, projectiles}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
@@ -19,7 +19,10 @@ function Canvas({map, players}){
     water.src = '/src/assets/grassMap/Water.png'
 
     const tank = new Image();
-    tank.src = '/src/assets/tank.png'
+    tank.src = '/src/assets/Tank.png'
+
+    const bullet = new Image();
+    bullet.src = '/src/assets/Bullet.png'
 
     const quarterAngle = Math.PI/4;
 
@@ -27,17 +30,31 @@ function Canvas({map, players}){
     useEffect(() => {
 
       const canvas = canvasRef.current
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth
       const ctx = canvas.getContext('2d')
+
       let currentImage;
       let tilesInRow;
+
+      let camX = 0;
+      let camY = 0;
+
+      console.log('canHei',canvas.height)
+      console.log('canWid', canvas.width)
+
+
+      if(players.length > 0){const myPlayer = players.find((player) => player.id == socket.id)
+
+      camX = parseInt(myPlayer.x - canvas.width/2)
+      camY = parseInt(myPlayer.y - canvas.height/2)
+      }
 
 
       const w = map.length * tileSize;
       const h = map.length *tileSize;
 
 
-      canvas.width = w;
-      canvas.height = h;
 
 
       for(let row = 0; row < map.length; row++){
@@ -70,8 +87,8 @@ function Canvas({map, players}){
               imageRow * tileSize,
               tileSize,
               tileSize,
-              col * tileSize,
-              row * tileSize,
+              col * tileSize - camX,
+              row * tileSize -camY,
               tileSize,
               tileSize
           )}
@@ -79,7 +96,7 @@ function Canvas({map, players}){
 
       players.map((player)=>{
 
-        ctx.translate(player.x, player.y)
+        ctx.translate(player.x -camX, player.y - camY)
 
         if(player.direction === 'upLeft'){
         ctx.rotate(quarterAngle)
@@ -107,18 +124,28 @@ function Canvas({map, players}){
           ctx.rotate(0)
         }
 
-        ctx.translate(-player.x, -player.y); 
+        ctx.translate(-player.x + camX, -player.y + camY); 
 
         ctx.drawImage(
         tank,
-        player.x -30,
-        player.y -20,
+        player.x -30 -camX,
+        player.y -20 -camY,
         60,
         40
       )
 
       ctx.setTransform(1,0,0,1,0,0);
-    
+    })
+
+    projectiles.map(projectile => {
+
+
+
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.arc(projectile.x - camX, projectile.y - camY, 5, 0, 2*Math.PI)
+        ctx.fill();
+
     })
 
 

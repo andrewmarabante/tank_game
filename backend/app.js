@@ -22,9 +22,12 @@ server.listen(4000, ()=>{
 var io = socket(server);
 
 const TICK_RATE = 30;
-const SPEED = 3
+const SPEED = 3;
+const PROJECTILE_SPEED = 7;
 
 let players = [];
+let projectiles = [];
+
 const inputsMap = {}
 
 function tick(){
@@ -73,7 +76,13 @@ function tick(){
 
     })
 
+    projectiles.map( projectile => {
+      projectile.x += Math.cos(projectile.angle) * PROJECTILE_SPEED
+      projectile.y += Math.sin(projectile.angle) * PROJECTILE_SPEED
+    })
+
     io.emit('players', players)
+    io.emit('projectiles', projectiles)
 }
 
 async function main(){
@@ -104,6 +113,19 @@ async function main(){
     socket.on('input', (inputs) => {
       console.log('work')
       inputsMap[socket.id] = inputs;
+    })
+
+    socket.on('fire', (angle) => {
+      const player = players.find((player) => player.id === socket.id)
+  
+      console.log(angle)
+      projectiles.push({
+        angle : angle,
+        x: player.x,
+        y: player.y,
+      })
+
+      console.log(projectiles)
     })
 
     socket.on('disconnect', () => {

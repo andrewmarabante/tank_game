@@ -10,6 +10,7 @@ function App() {
   const canvasRef = useRef(null);
   const initialized = useRef(false)
   const [players, setPlayers] = useState([])
+  const [projectiles, setProjectiles] = useState([])
 
   const keys = new Map();
 
@@ -47,8 +48,13 @@ function App() {
        setPlayers(serverPlayers)
       });
 
+      socket.on('projectiles', (serverProjectiles) => {
+        setProjectiles(serverProjectiles)
+      })
+
       window.addEventListener('keydown', handleKeyDown)
       window.addEventListener('keyup', handleKeyUp)
+      window.addEventListener('click', handleClick)
 
     }}, [socket]);
 
@@ -120,10 +126,18 @@ function App() {
 
   }
 
+  function handleClick(e){
 
+    const angle = Math.atan2(
+      e.clientY - window.innerHeight/2,
+      e.clientX - window.innerWidth/2,
+    )
+    
+    socket.emit('fire', angle)
+  }
   return (
     <div style={{height:'200px'}}>
-      {map && <Canvas map = {map} players = {players}/>}
+      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} socket = {socket}/>}
     </div>
   )
 }
