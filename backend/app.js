@@ -187,8 +187,8 @@ async function main(){
 
     players.push({
       id: socket.id,
-      x: 0,
-      y: 0,
+      x: 50,
+      y: 50,
       w: 40,
       h: 40,
       direction: 'up',
