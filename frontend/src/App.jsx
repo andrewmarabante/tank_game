@@ -12,7 +12,7 @@ function App() {
   const [players, setPlayers] = useState([])
   const [projectiles, setProjectiles] = useState([])
   const [game, setGame] = useState(false)
-  const[leader, setLeader] = useState(false);
+  const [leader, setLeader] = useState(false);
 
   const keys = new Map();
 

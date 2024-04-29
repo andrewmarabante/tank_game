@@ -24,6 +24,9 @@ function Canvas({map, players, socket, projectiles, leader, game}){
     const bullet = new Image();
     bullet.src = '/src/assets/Bullet.png'
 
+    const fire = new Image();
+    fire.src = '/src/assets/Fire.png'
+
     const quarterAngle = Math.PI/4;
 
   
@@ -134,6 +137,16 @@ function Canvas({map, players, socket, projectiles, leader, game}){
       )
 
       ctx.setTransform(1,0,0,1,0,0);
+
+      if(player.dead){
+        ctx.drawImage(
+          fire,
+          player.x -10 -camX,
+          player.y -20 -camY,
+          30,
+          30
+        )
+      }
 
       ctx.fillText(
         'P' + player.Num,
