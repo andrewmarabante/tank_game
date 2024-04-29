@@ -134,6 +134,13 @@ function Canvas({map, players, socket, projectiles}){
       )
 
       ctx.setTransform(1,0,0,1,0,0);
+
+      ctx.fillText(
+        'P' + player.Num,
+        player.x -30 -camX + 20,
+        player.y -20 -camY -10,
+        10
+       )
     })
 
     projectiles.map(projectile => {

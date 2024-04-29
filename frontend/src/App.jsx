@@ -52,6 +52,10 @@ function App() {
         setProjectiles(serverProjectiles)
       })
 
+      socket.on('full', () => {
+        console.log('server full')
+      })
+
       window.addEventListener('keydown', handleKeyDown)
       window.addEventListener('keyup', handleKeyUp)
       window.addEventListener('click', handleClick)

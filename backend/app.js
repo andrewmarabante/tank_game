@@ -26,11 +26,32 @@ const SPEED = 3;
 const PROJECTILE_SPEED = 7;
 const TILE_SIZE = 16
 
+let p1Start = {
+  x: 63,
+  y: 1540,
+}
+
+let p2Start = {
+  x: 1535,
+  y: 55,
+}
+
+let p3Start = {
+  x: 65,
+  y: 55,
+}
+
+let p4Start = {
+  x: 1535,
+  y: 1540,
+}
+
 let players = [];
 let projectiles = [];
 let terrain = []
 
 const inputsMap = {}
+
 
 function isColliding(object, terrain){
   if(!object.ammo){
@@ -183,16 +204,49 @@ async function main(){
 
   io.on('connection', (socket) => {
 
-    console.log('Made Socket Connection: ' +socket.id)
-
-    players.push({
+    if( players.length === 0){players.push({
       id: socket.id,
-      x: 50,
-      y: 50,
+      x: p1Start.x,
+      y: p1Start.y,
       w: 40,
       h: 40,
       direction: 'up',
-    })
+      Num: 1,
+    })}
+    else if( players.length === 1){players.push({
+      id: socket.id,
+      x: p2Start.x,
+      y: p2Start.y,
+      w: 40,
+      h: 40,
+      direction: 'down',
+      Num: 2,
+    })}
+    else if( players.length === 2){players.push({
+      id: socket.id,
+      x: p3Start.x,
+      y: p3Start.y,
+      w: 40,
+      h: 40,
+      direction: 'down',
+      Num: 3,
+    })}
+    else if( players.length === 3){players.push({
+      id: socket.id,
+      x: p4Start.x,
+      y: p4Start.x,
+      w: 40,
+      h: 40,
+      direction: 'up',
+      Num: 4,
+    })}
+    else{
+      socket.emit('full')
+      return
+    }
+
+    console.log('Made Socket Connection: ' +socket.id)
+
 
     inputsMap[socket.id] = {
       up: false,
@@ -223,7 +277,16 @@ async function main(){
     })
 
     socket.on('disconnect', () => {
+
+      const leaver = players.find(player => player.id === socket.id)
+
       players = players.filter((player) => { return player.id !== socket.id})
+
+      players.map(player => {
+        if(player.Num > leaver.Num){
+          player.Num = player.Num-1
+        }
+      })
     })
   })
 
