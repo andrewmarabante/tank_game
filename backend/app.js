@@ -26,6 +26,8 @@ const SPEED = 3;
 const PROJECTILE_SPEED = 7;
 const TILE_SIZE = 16
 
+let gameState = false;
+
 let p1Start = {
   x: 63,
   y: 1540,
@@ -256,7 +258,14 @@ async function main(){
     };
 
     socket.emit('map', map2D)
-  
+    socket.emit('game', gameState)
+
+    socket.on('game', action => {
+      if(action === 'start'){
+        gameState = true;
+        io.emit('game', gameState)
+      }
+    })
   
     socket.on('input', (inputs) => {
       inputsMap[socket.id] = inputs;

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map, players, socket, projectiles}){
+function Canvas({map, players, socket, projectiles, leader, game}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
@@ -159,7 +159,20 @@ function Canvas({map, players, socket, projectiles}){
 
     }, [players])
     
-    return <canvas ref={canvasRef} style={{backgroundColor: '#c0d470'}}/>
+    function handleStart(){
+      socket.emit('game', 'start')
+}
+    return (
+    <div className='relative'>
+      <canvas ref={canvasRef} style={{backgroundColor: '#c0d470'}}/>
+      {leader && !game && <div className='bg-black opacity-55 p-10 rounded-xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
+        <div className='text-white text-6xl select-none hover:text-blue-500' onClick={handleStart}>Start Game</div>
+      </div>}
+      {!leader && !game && <div className='bg-black opacity-55 p-10 rounded-xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
+        <div className='text-white text-6xl select-none'>Waiting for Player 1</div>
+      </div>}
+    </div>
+    )
 
 }
 

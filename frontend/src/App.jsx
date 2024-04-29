@@ -11,6 +11,8 @@ function App() {
   const initialized = useRef(false)
   const [players, setPlayers] = useState([])
   const [projectiles, setProjectiles] = useState([])
+  const [game, setGame] = useState(false)
+  const[leader, setLeader] = useState(false);
 
   const keys = new Map();
 
@@ -45,7 +47,12 @@ function App() {
       })
 
       socket.on('players', function (serverPlayers) {
-       setPlayers(serverPlayers)
+       
+        const currentPlayer = serverPlayers.find(player => player.id === socket.id)
+          if(currentPlayer.Num === 1){
+            setLeader(true)
+          }
+          setPlayers(serverPlayers)
       });
 
       socket.on('projectiles', (serverProjectiles) => {
@@ -56,15 +63,23 @@ function App() {
         console.log('server full')
       })
 
+      socket.on('game', (gameState) => {
+        window.removeEventListener('keydown', handleKeyDown)
+        window.removeEventListener('keyup', handleKeyUp)
+        window.removeEventListener('click', handleClick)
+        console.log('server', gameState)
+        setGame(gameState)
+      })
+
       window.addEventListener('keydown', handleKeyDown)
       window.addEventListener('keyup', handleKeyUp)
       window.addEventListener('click', handleClick)
 
-    }}, [socket]);
-
-  
+    }}, [socket, game]);
 
   function handleKeyDown(e){
+
+    if(!game){return}
 
     if(e.key == 'w'){
       keys.set(e.key, true)
@@ -100,6 +115,8 @@ function App() {
 
   function handleKeyUp(e){
 
+    if(game === false){return}
+
     if(e.key == 'w'){
       keys.set(e.key, false)
     }
@@ -131,6 +148,9 @@ function App() {
   }
 
   function handleClick(e){
+    console.log(game)
+
+    if(!game){return}
 
     const angle = Math.atan2(
       e.clientY - window.innerHeight/2,
@@ -140,8 +160,8 @@ function App() {
     socket.emit('fire', angle)
   }
   return (
-    <div style={{height:'200px'}}>
-      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} socket = {socket}/>}
+    <div>
+      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} socket = {socket} leader = {leader} game={game}/>}
     </div>
   )
 }
