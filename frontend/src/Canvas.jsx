@@ -180,12 +180,14 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     <div className='relative'>
       <canvas ref={canvasRef} style={{backgroundColor: '#c0d470'}}/>
       {leader && !game && <div className='bg-black opacity-55 p-10 rounded-2xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
-        <div className='text-white text-6xl select-none hover:text-blue-500' onClick={handleStart}>Start Game</div>
+        {players.length > 1 && <div className='text-white text-2xl sm:text-6xl select-none hover:text-blue-500' onClick={handleStart}>Start Game</div>}
+        {players.length === 1 && <div className='text-white text-2xl sm:text-6xl select-none hover:text-blue-500'>Need More Players...</div>}
       </div>}
       {!leader && !game && <div className='bg-black opacity-55 p-10 rounded-2xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
-        <div className='text-white text-6xl select-none'>Waiting for Player 1</div>
+        <div className='text-white text-2xl sm:text-6xl select-none'>Waiting for Player 1</div>
       </div>}
-      {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-4xl'>Player {winner} Wins!!</div>}
+      {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
+      {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
     </div>
     )
 

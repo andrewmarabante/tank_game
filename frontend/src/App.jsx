@@ -14,6 +14,7 @@ function App() {
   const [game, setGame] = useState(false)
   const [leader, setLeader] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [full, setFull] = useState(false)
 
   const keys = new Map();
 
@@ -43,6 +44,12 @@ function App() {
   useEffect(() => {
     if (socket) {
 
+      socket.on('full', () => {
+        console.log('full')
+        setFull(true)
+      })
+      
+
       socket.on('map', function(map) {
         setMap(map)
       })
@@ -60,15 +67,12 @@ function App() {
         setProjectiles(serverProjectiles)
       })
 
-      socket.on('full', () => {
-        console.log('server full')
-      })
-
       socket.on('game', (gameState) => {
         window.removeEventListener('keydown', handleKeyDown)
         window.removeEventListener('keyup', handleKeyUp)
         window.removeEventListener('click', handleClick)
         console.log('server', gameState)
+        console.log('k')
         setWinner(null)
         setGame(gameState)
       })
@@ -166,6 +170,7 @@ function App() {
   }
   return (
     <div>
+      {full && <div>Server is full, try again later</div>}
       {map && <Canvas map = {map} players = {players} projectiles = {projectiles} 
       socket = {socket} leader = {leader} game={game} winner={winner}/>}
     </div>
