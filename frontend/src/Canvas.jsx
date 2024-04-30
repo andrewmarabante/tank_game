@@ -29,6 +29,10 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     const fire = new Image();
     fire.src = '/src/assets/Fire.png'
 
+    const big = new Image();
+    big.src = '/src/assets/Purple.png'
+
+
     const quarterAngle = Math.PI/4;
 
   
@@ -180,15 +184,37 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     })
 
     projectiles.map(projectile => {
+      
+      let ammoImage = bullet;
+      let w;
+      let h;
+      
+
+      if(projectile.ammo === 'reg'){
+        ammoImage = bullet
+        w = 10
+        h = 10
+      }
+      else if(projectile.ammo === 'big'){
+        ammoImage = big
+        w = 40
+        h = 40
+      }
+
+      ctx.drawImage(
+        ammoImage,
+        projectile.x - camX -w/2,
+        projectile.y - camY-h/2,
+        w,
+        h,
+      )
 
 
-
-        ctx.fillStyle = 'blue';
-        ctx.beginPath();
-
-        //arc(x, y, radius, startAngle, endAngle, counterclockwise)
-        ctx.arc(projectile.x - camX, projectile.y - camY, 5, 0, 2*Math.PI)
-        ctx.fill();
+        // ctx.fillStyle = 'blue';
+        // ctx.beginPath();
+        // //arc(x, y, radius, startAngle, endAngle, counterclockwise)
+        // ctx.arc(projectile.x - camX, projectile.y - camY, 5, 0, 2*Math.PI)
+        // ctx.fill();
 
     })
 
@@ -211,6 +237,13 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
       </div>}
       {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
+      {game && <div className='absolute left-1/4 bottom-5 w-2/4 h-1/6 bg-black opacity-50 rounded-2xl flex justify-around items-center'>
+        <div className='bg-white rounded-2xl border-black border-solid h-5/6 w-1/6'></div>
+        <div className='bg-white rounded-2xl border-black border-solid h-5/6 w-1/6'></div>
+        <div className='bg-white rounded-2xl border-black border-solid h-5/6 w-1/6'></div>
+        <div className='bg-white rounded-2xl border-black border-solid h-5/6 w-1/6'></div>
+        <div className='bg-white rounded-2xl border-black border-solid h-5/6 w-1/6'></div>
+      </div>}
       {dead && <div className='absolute top-0 left-0  w-full h-full bg-black opacity-20'></div>}
       {dead && !waiting && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center font-mono'>YOU SUCK LOSER</div>}
       {waiting && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center font-mono'>Game in progress</div>}

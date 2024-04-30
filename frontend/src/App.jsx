@@ -23,6 +23,11 @@ function App() {
     down: false,
     right: false,
     left: false,
+    reg: false,
+    big: false,
+    fence: false,
+    mine: false,
+    special: false,
   }
 
   useEffect(()=>{
@@ -102,7 +107,21 @@ function App() {
     else if(e.key == 'a'){
       keys.set(e.key, true)
     }
-
+    else if(e.key == '1'){
+      keys.set(e.key, true)
+    }
+    else if(e.key == '2'){
+      keys.set(e.key, true)
+    }
+    else if(e.key == '3'){
+      keys.set(e.key, true)
+    }
+    else if(e.key == '4'){
+      keys.set(e.key, true)
+    }
+    else if(e.key == '5'){
+      keys.set(e.key, true)
+    }
 
     if(keys.get('w')){
       inputs["up"] = true
@@ -115,6 +134,21 @@ function App() {
     }
     if(keys.get("a")){
       inputs["left"] = true
+    }
+    if(keys.get("1")){
+      inputs["reg"] = true
+    }
+    if(keys.get("2")){
+      inputs["big"] = true
+    }
+    if(keys.get("3")){
+      inputs["fence"] = true
+    }
+    if(keys.get("4")){
+      inputs["mine"] = true
+    }
+    if(keys.get("5")){
+      inputs["special"] = true
     }
 
     socket.emit('input', inputs)  
@@ -138,6 +172,21 @@ function App() {
     else if(e.key == 'a'){
       keys.set(e.key, false)
     }
+    else if(e.key == '1'){
+      keys.set(e.key, false)
+    }
+    else if(e.key == '2'){
+      keys.set(e.key, false)
+    }
+    else if(e.key == '3'){
+      keys.set(e.key, false)
+    }
+    else if(e.key == '4'){
+      keys.set(e.key, false)
+    }
+    else if(e.key == '5'){
+      keys.set(e.key, false)
+    }
 
     if(!keys.get('w')){
       inputs["up"] = false
@@ -151,6 +200,22 @@ function App() {
     if(!keys.get("a")){
       inputs["left"] = false
     }
+    if(!keys.get("1")){
+      inputs["reg"] = false
+    }
+    if(!keys.get("2")){
+      inputs["big"] = false
+    }
+    if(!keys.get("3")){
+      inputs["fence"] = false
+    }
+    if(!keys.get("4")){
+      inputs["mine"] = false
+    }
+    if(!keys.get("5")){
+      inputs["special"] = false
+    }
+    
     
     socket.emit('input', inputs)
 

@@ -129,6 +129,22 @@ function tick(){
 
       const prevX = player.x
       const prevY = player.y
+      
+      if(inputs.reg){
+        player.ammo = 'reg'
+      }
+      else if(inputs.big){
+        player.ammo = 'big'
+      }
+      else if(inputs.fence){
+        player.ammo = 'fence'
+      }
+      else if(inputs.mine){
+        player.ammo = 'mine'
+      }
+      else if(inputs.special){
+        player.ammo = 'special'
+      }
 
       if(inputs.up && inputs.left){
 
@@ -296,6 +312,7 @@ async function main(){
       direction: 'up',
       Num: 1,
       dead: false,
+      ammo: 'reg',
     })}
     else if( players.length === 1){players.push({
       id: socket.id,
@@ -306,6 +323,7 @@ async function main(){
       direction: 'down',
       Num: 2,
       dead: false,
+      ammo: 'reg',
     })}
     else if( players.length === 2){players.push({
       id: socket.id,
@@ -316,6 +334,7 @@ async function main(){
       direction: 'down',
       Num: 3,
       dead: false,
+      ammo: 'reg',
     })}
     else if( players.length === 3){players.push({
       id: socket.id,
@@ -326,6 +345,7 @@ async function main(){
       direction: 'up',
       Num: 4,
       dead: false,
+      ammo: 'reg',
     })}
     else{
       socket.emit('full')
@@ -379,7 +399,7 @@ async function main(){
         angle : angle,
         x: player.x,
         y: player.y,
-        ammo: 'reg',
+        ammo: player.ammo,
         collide: false,
       })
 
