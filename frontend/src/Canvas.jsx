@@ -5,6 +5,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
+    const [dead,setDead] = useState(false)
 
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
@@ -45,10 +46,22 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
 
 
 
-      if(players.length > 0){const myPlayer = players.find((player) => player.id == socket.id)
+      if(players.length > 0){
+        
+        const myPlayer = players.find((player) => player.id == socket.id)
 
-      camX = parseInt(myPlayer.x - canvas.width/2)
-      camY = parseInt(myPlayer.y - canvas.height/2)
+        camX = parseInt(myPlayer.x - canvas.width/2)
+        camY = parseInt(myPlayer.y - canvas.height/2)
+
+        if(myPlayer.dead){
+          setDead(true)
+          camX = parseInt(myPlayer.ghostX - canvas.width/2)
+          camY = parseInt(myPlayer.ghostY - canvas.height/2)
+        }else{
+          setDead(false)
+        }
+
+
       }
 
 
@@ -92,7 +105,9 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
               row * tileSize -camY,
               tileSize,
               tileSize
-          )}
+          )
+        
+        }
       }
 
       players.map((player)=>{
@@ -146,6 +161,8 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
           30,
           30
         )
+
+
       }
 
       ctx.fillText(
@@ -188,6 +205,8 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
       </div>}
       {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
+      {dead && <div className='absolute top-0 left-0  w-full h-full bg-black opacity-20'></div>}
+      {dead && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center'>YOU SUCK LOSER</div>}
     </div>
     )
 

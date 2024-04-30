@@ -130,40 +130,79 @@ function tick(){
       const prevY = player.y
 
       if(inputs.up && inputs.left){
-        player.y -= SPEED *.71
+
+        if(player.dead){
+          player.ghostY -= SPEED *.71
+          player.ghostX -= SPEED *.71
+        }
+        else{player.y -= SPEED *.71
         player.x -= SPEED *.71
-        player.direction = 'upLeft'
+        player.direction = 'upLeft'}
       }
       else if(inputs.up && inputs.right){
-        player.y -= SPEED *.71
-        player.x += SPEED  *.71   
-        player.direction = 'upRight'
+        if(player.dead){
+          player.ghostY -= SPEED *.71
+          player.ghostX += SPEED *.71
+        }
+        else{
+          player.y -= SPEED *.71
+          player.x += SPEED  *.71   
+          player.direction = 'upRight'}
       }
       else if(inputs.down && inputs.right){
-        player.y += SPEED *.71
-        player.x += SPEED *.71    
-        player.direction = 'downRight'  
+        
+        if(player.dead){
+          player.ghostY += SPEED *.71
+          player.ghostX += SPEED *.71
+        }
+        else{
+          player.y += SPEED *.71
+          player.x += SPEED *.71    
+          player.direction = 'downRight' } 
        }
       else if(inputs.down && inputs.left){
-        player.y += SPEED *.71
-        player.x -= SPEED *.71 
-        player.direction = 'downLeft'       
+        
+        if(player.dead){
+          player.ghostY += SPEED *.71
+          player.ghostX -= SPEED *.71
+        }
+        else{
+          player.y += SPEED *.71
+          player.x -= SPEED *.71 
+          player.direction = 'downLeft'   }    
       }
       else if(inputs.up){
-        player.y -= SPEED
-        player.direction = 'up'
+        
+        if(player.dead){
+          player.ghostY -= SPEED 
+        }
+        else{
+          player.y -= SPEED
+          player.direction = 'up'}
       }
       else if(inputs.down){
-        player.y += SPEED
-        player.direction = 'down'
+        if(player.dead){
+          player.ghostY += SPEED 
+        }
+        else{
+          player.y += SPEED
+          player.direction = 'down'}
       }
       else if(inputs.left){
-        player.x -= SPEED
-        player.direction = 'left'
+        if(player.dead){
+          player.ghostX -= SPEED 
+        }
+        else{
+          player.x -= SPEED
+          player.direction = 'left'}
       }
       else if(inputs.right){
-        player.x += SPEED
-        player.direction = 'right'
+        if(player.dead){
+          player.ghostX += SPEED 
+        }
+        else{
+          player.x += SPEED
+          player.direction = 'right'}
       }
       
       if(isColliding(player, terrain)){
@@ -184,6 +223,9 @@ function tick(){
         if(distance <=25 && projectile.id !== player.id){
           projectiles = projectiles.filter(projectile => projectile.id !== projectile.id)
           player.dead = true
+          player.ghostX = player.x
+          player.ghostY = player.y
+
 
           //Checking if gameOver
           livingPlayers = players.filter(player => player.dead === false)
@@ -311,8 +353,6 @@ async function main(){
   
     socket.on('input', (inputs) => {
       const player = players.find((player) => player.id === socket.id)
-
-      if(player.dead){return}
 
       inputsMap[socket.id] = inputs;
     })
