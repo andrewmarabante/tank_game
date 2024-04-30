@@ -46,6 +46,7 @@ function App() {
 
       socket.on('full', () => {
         console.log('full')
+        socket.close();
         setFull(true)
       })
       
@@ -71,8 +72,6 @@ function App() {
         window.removeEventListener('keydown', handleKeyDown)
         window.removeEventListener('keyup', handleKeyUp)
         window.removeEventListener('click', handleClick)
-        console.log('server', gameState)
-        console.log('k')
         setWinner(null)
         setGame(gameState)
       })

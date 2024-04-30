@@ -78,6 +78,7 @@ function gameOver(winner){
     }
     
     player.dead = false
+    player.waiting = false
   })
   gameState = false
 
@@ -331,6 +332,17 @@ async function main(){
       return
     }
 
+    if(gameState === true){
+      players.map(player => {
+        if(player.id === socket.id){
+          player.ghostX = 800;
+          player.ghostY = 800;
+          player.dead = true;
+          player.waiting = true;
+        }
+      })
+    }
+
     console.log('Made Socket Connection: ' +socket.id)
 
 
@@ -384,6 +396,11 @@ async function main(){
           player.Num = player.Num-1
         }
       })
+
+      livingPlayers = players.filter(player => player.dead === false)
+      if(livingPlayers.length === 1){
+        gameOver(livingPlayers[0])
+      }
     })
   })
 

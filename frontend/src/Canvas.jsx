@@ -6,6 +6,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     const canvasRef = useRef(null)
     const tileSize = 16;
     const [dead,setDead] = useState(false)
+    const [waiting, setWaiting] = useState(false)
 
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
@@ -61,6 +62,11 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
           setDead(false)
         }
 
+        if(myPlayer.waiting){
+          setWaiting(true)
+        }else{
+          setWaiting(false)
+        }
 
       }
 
@@ -206,7 +212,8 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
       {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
       {dead && <div className='absolute top-0 left-0  w-full h-full bg-black opacity-20'></div>}
-      {dead && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center'>YOU SUCK LOSER</div>}
+      {dead && !waiting && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center font-mono'>YOU SUCK LOSER</div>}
+      {waiting && <div className='absolute w-1/3 top-1/4 left-1/3 text-white text-2xl sm:text-6xl select-none text-center font-mono'>Game in progress</div>}
     </div>
     )
 
