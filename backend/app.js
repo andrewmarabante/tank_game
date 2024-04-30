@@ -54,6 +54,37 @@ let terrain = []
 
 const inputsMap = {}
 
+function gameOver(winner){
+  players.map(player => {
+    if(player.Num === 1){
+      player.x = p1Start.x
+      player.y = p1Start.y
+      player.direction = 'up'
+    }
+    else if(player.Num === 2){
+      player.x = p2Start.x
+      player.y = p2Start.y
+      player.direction = 'down'
+    }
+    else if(player.Num === 3){
+      player.x = p3Start.x
+      player.y = p3Start.y
+      player.direction = 'down'
+    }
+    else if(player.Num === 4){
+      player.x = p4Start.x
+      player.y = p4Start.y
+      player.direction = 'up'
+    }
+    
+    player.dead = false
+  })
+  gameState = false
+
+  io.emit('game', false)
+  io.emit('winner', winner.Num)
+}
+
 
 function isColliding(object, terrain){
   if(!object.ammo){
@@ -153,7 +184,12 @@ function tick(){
         if(distance <=25 && projectile.id !== player.id){
           projectiles = projectiles.filter(projectile => projectile.id !== projectile.id)
           player.dead = true
-          console.log(player)
+
+          //Checking if gameOver
+          livingPlayers = players.filter(player => player.dead === false)
+          if(livingPlayers.length === 1){
+            gameOver(livingPlayers[0])
+          }
         }
       })
 

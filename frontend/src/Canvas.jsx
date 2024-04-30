@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map, players, socket, projectiles, leader, game}){
+function Canvas({map, players, socket, projectiles, leader, game, winner}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
@@ -175,15 +175,17 @@ function Canvas({map, players, socket, projectiles, leader, game}){
     function handleStart(){
       socket.emit('game', 'start')
 }
+
     return (
     <div className='relative'>
       <canvas ref={canvasRef} style={{backgroundColor: '#c0d470'}}/>
-      {leader && !game && <div className='bg-black opacity-55 p-10 rounded-xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
+      {leader && !game && <div className='bg-black opacity-55 p-10 rounded-2xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
         <div className='text-white text-6xl select-none hover:text-blue-500' onClick={handleStart}>Start Game</div>
       </div>}
-      {!leader && !game && <div className='bg-black opacity-55 p-10 rounded-xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
+      {!leader && !game && <div className='bg-black opacity-55 p-10 rounded-2xl absolute top-1/3 h-1/3 w-full flex justify-center items-center'>
         <div className='text-white text-6xl select-none'>Waiting for Player 1</div>
       </div>}
+      {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-4xl'>Player {winner} Wins!!</div>}
     </div>
     )
 

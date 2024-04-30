@@ -13,6 +13,7 @@ function App() {
   const [projectiles, setProjectiles] = useState([])
   const [game, setGame] = useState(false)
   const [leader, setLeader] = useState(false);
+  const [winner, setWinner] = useState(null);
 
   const keys = new Map();
 
@@ -68,7 +69,12 @@ function App() {
         window.removeEventListener('keyup', handleKeyUp)
         window.removeEventListener('click', handleClick)
         console.log('server', gameState)
+        setWinner(null)
         setGame(gameState)
+      })
+
+      socket.on('winner', winner => {
+        setWinner(winner)
       })
 
       window.addEventListener('keydown', handleKeyDown)
@@ -148,7 +154,6 @@ function App() {
   }
 
   function handleClick(e){
-    console.log(game)
 
     if(!game){return}
 
@@ -161,7 +166,8 @@ function App() {
   }
   return (
     <div>
-      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} socket = {socket} leader = {leader} game={game}/>}
+      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} 
+      socket = {socket} leader = {leader} game={game} winner={winner}/>}
     </div>
   )
 }
