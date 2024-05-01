@@ -453,11 +453,15 @@ async function main(){
       if(player.dead){return}
 
       if(player.ammo === 'fence'){
+
+        const fenceX = player.x + Math.cos(angle)*60
+        const fenceY = player.y + Math.sin(angle)*60
+
         playerFences.push({
           id: socket.id,
           angle : angle,
-          x: player.x,
-          y: player.y,
+          x: fenceX,
+          y: fenceY,
         })
       }
       else {projectiles.push({
