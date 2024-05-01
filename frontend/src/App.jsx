@@ -15,6 +15,7 @@ function App() {
   const [leader, setLeader] = useState(false);
   const [winner, setWinner] = useState(null);
   const [full, setFull] = useState(false)
+  const [playerFences, setPlayerFences] = useState([])
 
   const keys = new Map();
 
@@ -83,6 +84,10 @@ function App() {
 
       socket.on('winner', winner => {
         setWinner(winner)
+      })
+
+      socket.on('playerFences', playerFences => {
+        setPlayerFences(playerFences)
       })
 
       window.addEventListener('keydown', handleKeyDown)
@@ -236,7 +241,9 @@ function App() {
     <div>
       {full && <div>Server is full, try again later</div>}
       {map && <Canvas map = {map} players = {players} projectiles = {projectiles} 
-      socket = {socket} leader = {leader} game={game} winner={winner}/>}
+      socket = {socket} leader = {leader} game={game} winner={winner}
+      playerFences = {playerFences}
+      />}
     </div>
   )
 }

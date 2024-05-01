@@ -53,7 +53,8 @@ let p4Start = {
 
 let players = [];
 let projectiles = [];
-let terrain = []
+let terrain = [];
+let playerFences = [];
 
 const inputsMap = {}
 
@@ -84,9 +85,11 @@ function gameOver(winner){
     player.waiting = false
   })
   gameState = false
+  playerFences = []
 
   io.emit('game', false)
   io.emit('winner', winner.Num)
+  io.emit('playerFences', playerFences)
 }
 
 
@@ -315,6 +318,7 @@ function tick(){
 
     io.emit('players', players)
     io.emit('projectiles', projectiles)
+    io.emit('playerFences', playerFences)
 }
 
 async function main(){
@@ -447,15 +451,25 @@ async function main(){
       const player = players.find((player) => player.id === socket.id)
 
       if(player.dead){return}
-  
-      projectiles.push({
+
+      if(player.ammo === 'fence'){
+        playerFences.push({
+          id: socket.id,
+          angle : angle,
+          x: player.x,
+          y: player.y,
+        })
+      }
+      else {projectiles.push({
         id: socket.id,
         angle : angle,
         x: player.x,
         y: player.y,
         ammo: player.ammo,
         collide: false,
-      })
+      })}
+      
+      console.log(playerFences)
 
     })
 

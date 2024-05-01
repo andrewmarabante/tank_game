@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map, players, socket, projectiles, leader, game, winner}){
+function Canvas({map, players, socket, projectiles, leader, game, winner, playerFences}){
 
     const canvasRef = useRef(null)
     const tileSize = 16;
@@ -32,8 +32,8 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     const big = new Image();
     big.src = '/src/assets/Purple.png'
 
-    const barricade = new Image();
-    barricade.src = '/src/assets/Barricade.png'
+    const playerFence = new Image();
+    playerFence.src = '/src/assets/Barricade.png'
 
     const mine = new Image();
     mine.src = '/src/assets/Landmine.png'
@@ -213,11 +213,6 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
         w = 30
         h = 30
       }
-      else if(projectile.ammo === 'fence'){
-        ammoImage = barricade
-        w = 100
-        h = 20
-      }
       else if(projectile.ammo === 'mine'){
         ammoImage = mine
         w = 20
@@ -238,6 +233,21 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
       )
 
     })
+
+    playerFences.map(fence => {
+      ctx.translate(fence.x -camX, fence.y - camY)
+      ctx.rotate(fence.angle +Math.PI/2)
+      ctx.translate(-fence.x +camX, -fence.y + camY)
+      ctx.drawImage(
+        playerFence,
+        fence.x - camX -50,
+        fence.y - camY-10,
+        100,
+        20,
+      )
+      ctx.setTransform(1,0,0,1,0,0);
+    })
+    
 
 
     }, [players])
