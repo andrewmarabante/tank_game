@@ -123,6 +123,24 @@ function isColliding(object, terrain){
   }
    return false
   }
+  else if(object.ammo === 'big'){
+
+    let radius = 15;
+
+    for(let i = 0; i < terrain[0].length; i++){
+
+      var distX = Math.abs(object.x - terrain[0][i].x+terrain[0][i].w/2);
+      var distY = Math.abs(object.y - terrain[0][i].y+terrain[0][i].h/2);
+
+      if( (distX < (terrain[0][i].w/2 + radius)) && (distY < (terrain[0][i].h/2 + radius)) ){
+       
+        if (distX <= (terrain[0][i].w/2)) { return true; } 
+        if (distY <= (terrain[0][i].h/2)) { return true; }
+      }
+  }
+   return false
+    
+  }
 }
 
 function tick(){
@@ -226,6 +244,8 @@ function tick(){
       }
       
       if(isColliding(player, terrain)){
+
+
         player.x = prevX;
         player.y = prevY;
       }
@@ -255,7 +275,15 @@ function tick(){
       players.map(player => {
         const distance = Math.sqrt((player.x - projectile.x) **2 + (player.y - projectile.y) **2 )
 
-        if(distance <=25 && projectile.id !== player.id){
+        let hitDistance;
+        // 1/2w player + r
+
+        if(projectile.ammo === 'reg'){
+          hitDistance = 25
+        }else if(projectile.ammo === 'big'){
+          hitDistance = 35
+        }
+        if(distance <=hitDistance && projectile.id !== player.id){
           projectiles = projectiles.filter(projectile => projectile.id !== projectile.id)
           player.dead = true
           player.ghostX = player.x
@@ -271,8 +299,16 @@ function tick(){
       })
 
       if(isColliding(projectile, terrain)){
+
+        if(projectile.ammo === 'reg'){
         projectile.collide = true
         projectiles = projectiles.filter(projectile => projectile.collide !== true)
+        }
+        else if(projectile.ammo === 'big'){
+          projectile.x -= Math.cos(projectile.angle) * speed/1.5
+          projectile.y -= Math.sin(projectile.angle) * speed/1.5
+        }
+
       }
     })
 
