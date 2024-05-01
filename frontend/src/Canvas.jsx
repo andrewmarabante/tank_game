@@ -32,6 +32,19 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
     const big = new Image();
     big.src = '/src/assets/Purple.png'
 
+    const barricade = new Image();
+    barricade.src = '/src/assets/Barricade.png'
+
+    const mine = new Image();
+    mine.src = '/src/assets/Landmine.png'
+
+    const grenade = new Image();
+    grenade.src = '/src/assets/Grenade.png'
+
+
+
+    
+
 
     const quarterAngle = Math.PI/4;
 
@@ -197,8 +210,23 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
       }
       else if(projectile.ammo === 'big'){
         ammoImage = big
-        w = 40
-        h = 40
+        w = 30
+        h = 30
+      }
+      else if(projectile.ammo === 'fence'){
+        ammoImage = barricade
+        w = 100
+        h = 20
+      }
+      else if(projectile.ammo === 'mine'){
+        ammoImage = mine
+        w = 20
+        h = 20
+      }
+      else if(projectile.ammo === 'special'){
+        ammoImage = grenade
+        w = 15
+        h = 30
       }
 
       ctx.drawImage(
@@ -208,13 +236,6 @@ function Canvas({map, players, socket, projectiles, leader, game, winner}){
         w,
         h,
       )
-
-
-        // ctx.fillStyle = 'blue';
-        // ctx.beginPath();
-        // //arc(x, y, radius, startAngle, endAngle, counterclockwise)
-        // ctx.arc(projectile.x - camX, projectile.y - camY, 5, 0, 2*Math.PI)
-        // ctx.fill();
 
     })
 

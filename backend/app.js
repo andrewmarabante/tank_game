@@ -23,7 +23,10 @@ var io = socket(server);
 
 const TICK_RATE = 30;
 const SPEED = 20;
-const PROJECTILE_SPEED = 7;
+const REG_SPEED = 7;
+const BIG_SPEED = 10;
+const GRENADE_SPEED = 4;
+
 const TILE_SIZE = 16
 
 let gameState = false;
@@ -231,8 +234,23 @@ function tick(){
 
     //Determines if player is shot
     projectiles.map( projectile => {
-      projectile.x += Math.cos(projectile.angle) * PROJECTILE_SPEED
-      projectile.y += Math.sin(projectile.angle) * PROJECTILE_SPEED
+
+      let speed;
+
+      if(projectile.ammo === 'reg'){
+        speed = REG_SPEED;
+      }
+      else if(projectile.ammo === 'big'){
+        speed = BIG_SPEED
+      }
+      else if(projectile.ammo === 'special'){
+        speed = GRENADE_SPEED
+      }
+      else{
+        speed = 0
+      }
+      projectile.x += Math.cos(projectile.angle) * speed
+      projectile.y += Math.sin(projectile.angle) * speed
 
       players.map(player => {
         const distance = Math.sqrt((player.x - projectile.x) **2 + (player.y - projectile.y) **2 )
