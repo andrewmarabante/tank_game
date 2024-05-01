@@ -93,8 +93,8 @@ function gameOver(winner){
 }
 
 
-function isColliding(object, terrain){
-  if(!object.ammo){
+function isColliding(object, terrain, isProjectile){
+  if(!isProjectile){
     for(let structures = 0 ; structures < terrain.length; structures++){
       for(let i = 0; i < terrain[structures].length; i++){
         if(
@@ -108,7 +108,7 @@ function isColliding(object, terrain){
     }}
     }
       return false
-  }else if(object.ammo === 'reg'){
+  }else if(object.ammo === 'reg' && isProjectile){
 
     let radius = 5;
 
@@ -126,7 +126,7 @@ function isColliding(object, terrain){
   }
    return false
   }
-  else if(object.ammo === 'big'){
+  else if(object.ammo === 'big' && isProjectile){
 
     let radius = 15;
 
@@ -246,8 +246,7 @@ function tick(){
           player.direction = 'right'}
       }
       
-      if(isColliding(player, terrain)){
-
+      if(isColliding(player, terrain, false)){
 
         player.x = prevX;
         player.y = prevY;
@@ -301,7 +300,7 @@ function tick(){
         }
       })
 
-      if(isColliding(projectile, terrain)){
+      if(isColliding(projectile, terrain, true)){
 
         if(projectile.ammo === 'reg'){
         projectile.collide = true
@@ -473,8 +472,6 @@ async function main(){
         collide: false,
       })}
       
-      console.log(playerFences)
-
     })
 
     socket.on('disconnect', () => {
