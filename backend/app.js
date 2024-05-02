@@ -22,7 +22,7 @@ server.listen(4000, ()=>{
 var io = socket(server);
 
 const TICK_RATE = 30;
-const SPEED = 20;
+const SPEED = 5;
 const REG_SPEED = 7;
 const BIG_SPEED = 10;
 const GRENADE_SPEED = 4;
@@ -56,7 +56,7 @@ let projectiles = [];
 let terrain = [];
 let playerFences = [];
 
-const inputsMap = {}
+let inputsMap = {}
 
 function gameOver(winner){
   players.map(player => {
@@ -86,10 +86,58 @@ function gameOver(winner){
   })
   gameState = false
   playerFences = []
+  projectiles = []
+
+  players.map(player => {
+    inputsMap[player.id] = {
+      up: false,
+      down: false,
+      right: false,
+      left: false,
+    }
+  })
 
   io.emit('game', false)
   io.emit('winner', winner.Num)
   io.emit('playerFences', playerFences)
+}
+
+function circleRectCollide(circle, rectangle) {
+
+  // Calculate the angle cosine and sine
+  let cosAngle = Math.cos(rectangle.angle);
+  let sinAngle = Math.sin(rectangle.angle);
+
+  // Transform circle center to rectangle space
+  let dx = circle.x - rectangle.x;
+  let dy = circle.y - rectangle.y;
+  let circleX = dx * cosAngle + dy * sinAngle;
+  let circleY = dy * cosAngle - dx * sinAngle;
+
+  // Find the closest point on the rectangle to the circle
+  let closestX, closestY;
+  if (circleX < -rectangle.width / 2) {
+      closestX = -rectangle.width / 2;
+  } else if (circleX > rectangle.width / 2) {
+      closestX = rectangle.width / 2;
+  } else {
+      closestX = circleX;
+  }
+  if (circleY < -rectangle.height / 2) {
+      closestY = -rectangle.height / 2;
+  } else if (circleY > rectangle.height / 2) {
+      closestY = rectangle.height / 2;
+  } else {
+      closestY = circleY;
+  }
+
+  // Calculate distance between circle center and closest point on rectangle
+  let distanceX = circleX - closestX;
+  let distanceY = circleY - closestY;
+  let distanceSquared = distanceX * distanceX + distanceY * distanceY;
+
+  // Check if the distance is less than or equal to the circle's radius squared
+  return distanceSquared <= (circle.radius * circle.radius);
 }
 
 
@@ -107,7 +155,16 @@ function isColliding(object, terrain, isProjectile){
       return true
     }}
     }
-      return false
+
+    for(let i = 0 ; i < playerFences.length; i++){
+
+      if(circleRectCollide(object, playerFences[i])){
+        return true
+      }
+
+    }
+      
+    return false
   }else if(object.ammo === 'reg' && isProjectile){
 
     let radius = 5;
@@ -248,6 +305,7 @@ function tick(){
       
       if(isColliding(player, terrain, false)){
 
+        console.log('hit')
         player.x = prevX;
         player.y = prevY;
       }
@@ -320,6 +378,12 @@ function tick(){
     io.emit('playerFences', playerFences)
 }
 
+function clamp(val, min, max){
+  return (
+    Math.max(min, Math.min(val, max))
+  )
+}
+
 async function main(){
 
   const map2D = await loadMap()
@@ -366,6 +430,7 @@ async function main(){
       y: p1Start.y,
       w: 40,
       h: 40,
+      radius: 10,
       direction: 'up',
       Num: 1,
       dead: false,
@@ -377,6 +442,7 @@ async function main(){
       y: p2Start.y,
       w: 40,
       h: 40,
+      radius: 10,
       direction: 'down',
       Num: 2,
       dead: false,
@@ -388,6 +454,7 @@ async function main(){
       y: p3Start.y,
       w: 40,
       h: 40,
+      radius: 10,
       direction: 'down',
       Num: 3,
       dead: false,
@@ -399,6 +466,7 @@ async function main(){
       y: p4Start.x,
       w: 40,
       h: 40,
+      radius: 10,
       direction: 'up',
       Num: 4,
       dead: false,
@@ -461,6 +529,8 @@ async function main(){
           angle : angle,
           x: fenceX,
           y: fenceY,
+          height: 100,
+          width: 50,
         })
       }
       else {projectiles.push({

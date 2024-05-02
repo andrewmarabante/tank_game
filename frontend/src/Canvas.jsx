@@ -196,6 +196,21 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
        )
     })
 
+    playerFences.map(fence => {
+      ctx.translate(fence.x -camX, fence.y - camY)
+      ctx.rotate(fence.angle +Math.PI/2)
+      ctx.translate(-fence.x +camX, -fence.y + camY)
+      ctx.drawImage(
+        playerFence,
+        fence.x - camX -50,
+        fence.y - camY-10,
+        100,
+        20,
+      )
+      
+      ctx.setTransform(1,0,0,1,0,0);
+    })
+
     projectiles.map(projectile => {
       
       let ammoImage = bullet;
@@ -232,20 +247,6 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         h,
       )
 
-    })
-
-    playerFences.map(fence => {
-      ctx.translate(fence.x -camX, fence.y - camY)
-      ctx.rotate(fence.angle +Math.PI/2)
-      ctx.translate(-fence.x +camX, -fence.y + camY)
-      ctx.drawImage(
-        playerFence,
-        fence.x - camX -50,
-        fence.y - camY-10,
-        100,
-        20,
-      )
-      ctx.setTransform(1,0,0,1,0,0);
     })
     
 
