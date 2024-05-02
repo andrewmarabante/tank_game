@@ -10,6 +10,7 @@ const loadMap = require('./loadMap.js')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const { promiseHooks } = require('v8');
 
 var app = express();
 
@@ -25,7 +26,7 @@ const TICK_RATE = 30;
 const SPEED = 5;
 const REG_SPEED = 7;
 const BIG_SPEED = 10;
-const GRENADE_SPEED = 4;
+const GRENADE_SPEED = 7;
 
 const TILE_SIZE = 16
 
@@ -231,8 +232,8 @@ function tick(){
       else if(inputs.mine){
         player.ammo = 'mine'
       }
-      else if(inputs.special){
-        player.ammo = 'special'
+      else if(inputs.grenade){
+        player.ammo = 'grenade'
       }
 
       if(inputs.up && inputs.left){
@@ -320,8 +321,8 @@ function tick(){
     })
     
 
-    //Determines if player is shot
     projectiles.map( projectile => {
+
 
       let speed;
 
@@ -331,8 +332,17 @@ function tick(){
       else if(projectile.ammo === 'big'){
         speed = BIG_SPEED
       }
-      else if(projectile.ammo === 'special'){
-        speed = GRENADE_SPEED
+      else if(projectile.ammo === 'grenade'){
+
+        if(projectile.timer >0){
+          speed = GRENADE_SPEED
+          projectile.spin += 1/4
+          projectile.timer -= 40;
+        }
+        else{
+          speed = 0;
+        }
+
       }
       else if(projectile.ammo === 'mine'){
         //working on making the mine interactive. Just put a timer on it.
@@ -342,9 +352,7 @@ function tick(){
         speed = 0
 
       }
-      else{
-        speed = 0
-      }
+
       projectile.x += Math.cos(projectile.angle) * speed
       projectile.y += Math.sin(projectile.angle) * speed
 
@@ -373,6 +381,22 @@ function tick(){
             gameOver(livingPlayers[0])
           }
         }
+        if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && projectile.exploded){
+         
+          player.dead = true
+          player.ghostX = player.x
+          player.ghostY = player.y
+          //Checking if gameOver
+          livingPlayers = players.filter(player => player.dead === false)
+          if(livingPlayers.length === 1){
+            gameOver(livingPlayers[0])
+          }
+        }else if(projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
+          
+         projectile.exploded = true;
+        }
+
+
         if(distance <= 50 && projectile.ammo === 'mine' && projectile.timer <= 0 && !projectile.exploded){
           
           projectile.exploded = true;
@@ -408,11 +432,6 @@ function tick(){
     io.emit('playerFences', playerFences)
 }
 
-function clamp(val, min, max){
-  return (
-    Math.max(min, Math.min(val, max))
-  )
-}
 
 async function main(){
 
@@ -583,6 +602,20 @@ async function main(){
           collide: false,
           radius: 10,
           timer: 1000,
+          exploded: false,
+        })
+      }
+      else if(player.ammo === 'grenade'){
+        projectiles.push({
+          id: socket.id,  
+          angle : angle,
+          spin: angle,
+          x: player.x,
+          y: player.y,
+          ammo: player.ammo,
+          collide: false,
+          radius: 10,
+          timer: 2000,
           exploded: false,
         })
       }

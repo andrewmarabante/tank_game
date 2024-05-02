@@ -236,7 +236,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         w = 20
         h = 20
       }
-      else if(projectile.ammo === 'special'){
+      else if(projectile.ammo === 'grenade'){
         ammoImage = grenade
         w = 15
         h = 30
@@ -253,6 +253,47 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       }
 
       if(projectile.ammo === 'mine' && projectile.timer <= 0){return}
+
+      if(projectile.ammo === 'grenade' && !projectile.exploded){
+
+        ctx.translate(projectile.x - camX, projectile.y -camY)
+
+        ctx.rotate(projectile.spin)
+
+        ctx.translate(-projectile.x + camX, - projectile.y + camY)
+        ctx.drawImage(
+          grenade,
+          projectile.x - camX -7.5,
+          projectile.y - camY-15,
+          15,
+          30,
+        )
+
+        ctx.setTransform(1,0,0,1,0,0)
+
+        if(projectile.timer < 100){
+          ctx.drawImage(
+            fire,
+            projectile.x - camX -25,
+            projectile.y - camY-25,
+            50,
+            50,
+          )
+        }
+      }
+      else if(projectile.ammo === 'grenade' && projectile.exploded){
+        ctx.drawImage(
+          explosion,
+          projectile.x - camX -10,
+          projectile.y - camY-10,
+          20,
+          20,
+        )
+      }
+
+      if(projectile.ammo === 'grenade'){return}
+
+
       ctx.drawImage(
         ammoImage,
         projectile.x - camX -w/2,

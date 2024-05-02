@@ -28,7 +28,7 @@ function App() {
     big: false,
     fence: false,
     mine: false,
-    special: false,
+    grenade: false,
   }
 
   useEffect(()=>{
@@ -153,7 +153,7 @@ function App() {
       inputs["mine"] = true
     }
     if(keys.get("5")){
-      inputs["special"] = true
+      inputs["grenade"] = true
     }
 
     socket.emit('input', inputs)  
@@ -218,7 +218,7 @@ function App() {
       inputs["mine"] = false
     }
     if(!keys.get("5")){
-      inputs["special"] = false
+      inputs["grenade"] = false
     }
     
     
