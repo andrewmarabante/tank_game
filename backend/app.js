@@ -157,12 +157,9 @@ function isColliding(object, terrain, isProjectile){
     }
 
     for(let i = 0 ; i < playerFences.length; i++){
-
       if(circleRectCollide(object, playerFences[i])){
         return true
-      }
-
-    }
+      }}
       
     return false
   }else if(object.ammo === 'reg' && isProjectile){
@@ -181,6 +178,12 @@ function isColliding(object, terrain, isProjectile){
         if (distY <= (terrain[0][i].h/2)) { return true; }
       }
   }
+
+  for(let i=0; i<playerFences.length; i++){
+    if(circleRectCollide(object, playerFences[i])){
+    return true
+  }}
+
    return false
   }
   else if(object.ammo === 'big' && isProjectile){
@@ -198,6 +201,11 @@ function isColliding(object, terrain, isProjectile){
         if (distY <= (terrain[0][i].h/2)) { return true; }
       }
   }
+
+  for(let i=0; i<playerFences.length; i++){
+    if(circleRectCollide(object, playerFences[i])){
+    return true
+  }}
    return false
     
   }
@@ -305,7 +313,6 @@ function tick(){
       
       if(isColliding(player, terrain, false)){
 
-        console.log('hit')
         player.x = prevX;
         player.y = prevY;
       }
@@ -430,7 +437,7 @@ async function main(){
       y: p1Start.y,
       w: 40,
       h: 40,
-      radius: 10,
+      radius: 20,
       direction: 'up',
       Num: 1,
       dead: false,
@@ -442,7 +449,7 @@ async function main(){
       y: p2Start.y,
       w: 40,
       h: 40,
-      radius: 10,
+      radius: 20,
       direction: 'down',
       Num: 2,
       dead: false,
@@ -454,7 +461,7 @@ async function main(){
       y: p3Start.y,
       w: 40,
       h: 40,
-      radius: 10,
+      radius: 20,
       direction: 'down',
       Num: 3,
       dead: false,
@@ -466,7 +473,7 @@ async function main(){
       y: p4Start.x,
       w: 40,
       h: 40,
-      radius: 10,
+      radius: 20,
       direction: 'up',
       Num: 4,
       dead: false,
@@ -519,6 +526,16 @@ async function main(){
 
       if(player.dead){return}
 
+      let radius;
+
+      if(player.ammo === 'reg'){
+        radius = 5
+      }
+      else if(player.ammo === 'big'){
+        radius = 15
+      }
+
+
       if(player.ammo === 'fence'){
 
         const fenceX = player.x + Math.cos(angle)*60
@@ -530,7 +547,8 @@ async function main(){
           x: fenceX,
           y: fenceY,
           height: 100,
-          width: 50,
+          width: 20,
+
         })
       }
       else {projectiles.push({
@@ -540,6 +558,7 @@ async function main(){
         y: player.y,
         ammo: player.ammo,
         collide: false,
+        radius: radius
       })}
       
     })
