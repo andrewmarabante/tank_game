@@ -318,6 +318,7 @@ function tick(){
       }
 
     })
+    
 
     //Determines if player is shot
     projectiles.map( projectile => {
@@ -332,6 +333,14 @@ function tick(){
       }
       else if(projectile.ammo === 'special'){
         speed = GRENADE_SPEED
+      }
+      else if(projectile.ammo === 'mine'){
+        //working on making the mine interactive. Just put a timer on it.
+        if(projectile.timer >0 ){
+        projectile.timer -= 20;
+        }
+        speed = 0
+
       }
       else{
         speed = 0
@@ -349,14 +358,28 @@ function tick(){
           hitDistance = 25
         }else if(projectile.ammo === 'big'){
           hitDistance = 35
+        }else if(projectile.ammo === ''){
+          hitDistance = 50
         }
-        if(distance <=hitDistance && projectile.id !== player.id){
+        
+        if(distance <=hitDistance && projectile.id !== player.id && (projectile.ammo === 'reg' || 'big')){
           projectiles = projectiles.filter(projectile => projectile.id !== projectile.id)
           player.dead = true
           player.ghostX = player.x
           player.ghostY = player.y
-
-
+          //Checking if gameOver
+          livingPlayers = players.filter(player => player.dead === false)
+          if(livingPlayers.length === 1){
+            gameOver(livingPlayers[0])
+          }
+        }
+        if(distance <= 50 && projectile.ammo === 'mine' && projectile.timer <= 0 && !projectile.exploded){
+          
+          projectile.exploded = true;
+          
+          player.dead = true
+          player.ghostX = player.x
+          player.ghostY = player.y
           //Checking if gameOver
           livingPlayers = players.filter(player => player.dead === false)
           if(livingPlayers.length === 1){
@@ -548,10 +571,23 @@ async function main(){
           y: fenceY,
           height: 100,
           width: 20,
-
         })
       }
-      else {projectiles.push({
+      else if(player.ammo === 'mine'){
+        projectiles.push({
+          id: socket.id,
+          angle : angle,
+          x: player.x,
+          y: player.y,
+          ammo: player.ammo,
+          collide: false,
+          radius: 10,
+          timer: 1000,
+          exploded: false,
+        })
+      }
+      else {
+        projectiles.push({
         id: socket.id,
         angle : angle,
         x: player.x,

@@ -41,6 +41,9 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
     const grenade = new Image();
     grenade.src = '/src/assets/Grenade.png'
 
+    const explosion = new Image();
+    explosion.src = '/src/assets/Explosion.png'
+
 
 
     
@@ -239,6 +242,17 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         h = 30
       }
 
+      if(projectile.ammo === 'mine' && projectile.exploded){
+        ctx.drawImage(
+          explosion,
+          projectile.x - camX -40,
+          projectile.y - camY-40,
+          80,
+          80,
+        )
+      }
+
+      if(projectile.ammo === 'mine' && projectile.timer <= 0){return}
       ctx.drawImage(
         ammoImage,
         projectile.x - camX -w/2,
