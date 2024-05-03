@@ -7,6 +7,10 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
     const tileSize = 16;
     const [dead,setDead] = useState(false)
     const [waiting, setWaiting] = useState(false)
+    const [p1Blink, setP1Blink] = useState(0)
+    const [p2Blink, setP2Blink] = useState(0)
+    const [p3Blink, setP3Blink] = useState(0)
+    const [p4Blink, setP4Blink] = useState(0)
 
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
@@ -49,6 +53,12 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
     const blueMeter = new Image();
     blueMeter.src = '/src/assets/blueMeter.png'
+
+    const healthBar = new Image();
+    healthBar.src = '/src/assets/Healthbar.png'
+
+    const heart = new Image();
+    heart.src = '/src/assets/Heart.png'
 
 
 
@@ -209,12 +219,105 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
             player.y -topOffset -camY,
             5,
             blueHeight,
-      )
+        )
 
          ctx.setTransform(1,0,0,1,0,0);
-
-
       }
+
+      //Drawing HealthBar
+
+      if(player.health >= 0){
+
+      let leftOffset, topOffset;
+      let healthLeft = (player.health/100)*40
+
+      let heartSize = 12;
+
+      if(player.health <= 15){
+        if(player.Num === 1){
+          let current = p1Blink;
+          current++;
+          if(p1Blink%15){
+            heartSize = 16
+          }
+          setP1Blink(current)
+      }
+      else if(player.Num === 2){
+        let current = p2Blink;
+        current++;
+        if(p2Blink%15){
+          heartSize = 16
+        }
+        setP2Blink(current)
+    }
+    else if(player.Num === 3){
+      let current = p3Blink;
+      current++;
+      if(p3Blink%15){
+        heartSize = 16
+      }
+      setP3Blink(current)
+  }
+  else if(player.Num === 4){
+    let current = p4Blink;
+    current++;
+    if(p4Blink%15){
+      heartSize = 16
+    }
+    setP4Blink(current)
+}
+      }
+
+      
+      if(player.direction === 'upLeft'){
+        leftOffset = 20
+        topOffset = 25
+        }
+        else if(player.direction === 'up'){
+          leftOffset = 20
+          topOffset = 25
+        }
+        else if(player.direction === 'upRight'){
+          leftOffset = 20
+          topOffset = 25
+        }
+        else if(player.direction === 'right'){
+          leftOffset = 10
+          topOffset = 30         
+         }
+        else if(player.direction === 'downRight'){
+          leftOffset = 20
+          topOffset = 35        
+         }
+        else if(player.direction === 'down'){
+          leftOffset = 20
+          topOffset = 35          
+         }
+        else if(player.direction === 'downLeft'){
+          leftOffset = 20
+          topOffset = 35          
+        }
+        else if(player.direction === 'left')
+        {
+          leftOffset = 25
+          topOffset = 30            
+        }
+
+      ctx.fillStyle = '#F0F5EF';
+      ctx.fillRect(player.x -leftOffset -camX, player.y +topOffset -camY, 40, 8)
+
+      ctx.fillStyle = '#FF0074';
+      ctx.fillRect(player.x -leftOffset -camX, player.y +topOffset -camY, healthLeft, 8)
+
+      ctx.drawImage(
+        heart,
+        player.x -leftOffset -6 -camX,
+        player.y +topOffset -2 -camY,
+        heartSize,
+        heartSize,
+    )
+  }
+      
 
         ctx.translate(player.x -camX, player.y - camY)
 

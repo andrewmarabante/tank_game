@@ -70,21 +70,25 @@ function gameOver(winner){
       player.x = p1Start.x
       player.y = p1Start.y
       player.direction = 'up'
+      player.health = 100
     }
     else if(player.Num === 2){
       player.x = p2Start.x
       player.y = p2Start.y
       player.direction = 'down'
+      player.health = 100
     }
     else if(player.Num === 3){
       player.x = p3Start.x
       player.y = p3Start.y
       player.direction = 'down'
+      player.health = 100
     }
     else if(player.Num === 4){
       player.x = p4Start.x
       player.y = p4Start.y
       player.direction = 'up'
+      player.health = 100
     }
     
     player.dead = false
@@ -376,7 +380,17 @@ function tick(){
 
           projectile.collide = true;
           projectiles = projectiles.filter(projectile => projectile.collide !== true)
-          player.dead = true
+          
+          if(projectile.ammo === 'reg'){
+            player.health -= 3
+          }
+          else if(projectile.ammo === 'big'){
+            player.health -= 20
+          }
+
+          if(player.health <= 0){
+            player.dead = true
+          }
           player.ghostX = player.x
           player.ghostY = player.y
           //Checking if gameOver
@@ -388,7 +402,12 @@ function tick(){
         
         if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
 
-          player.dead = true
+          player.health -= 20
+          
+          if(player.health <= 0){
+            player.dead = true
+          }
+
           player.ghostX = player.x
           player.ghostY = player.y
           //Checking if gameOver
@@ -401,9 +420,13 @@ function tick(){
 
         if(distance <= 50 && projectile.ammo === 'mine' && projectile.timer <= 0 && !projectile.exploded){
           
+          player.health -= 60
+
+          if(player.health <= 0){
+            player.dead = true
+          }
+
           projectile.exploded = true;
-          
-          player.dead = true
           player.ghostX = player.x
           player.ghostY = player.y
           //Checking if gameOver
@@ -488,7 +511,8 @@ async function main(){
 
   io.on('connection', (socket) => {
 
-    if( players.length === 0){players.push({
+    if( players.length === 0){
+      players.push({
       id: socket.id,
       x: p1Start.x,
       y: p1Start.y,
@@ -500,6 +524,7 @@ async function main(){
       dead: false,
       ammo: 'reg',
       grenadeTimer: 0,
+      health: 100,
     })}
     else if( players.length === 1){players.push({
       id: socket.id,
@@ -513,6 +538,7 @@ async function main(){
       dead: false,
       ammo: 'reg',
       grenadeTimer: 0,
+      health: 100,
     })}
     else if( players.length === 2){players.push({
       id: socket.id,
@@ -526,6 +552,7 @@ async function main(){
       dead: false,
       ammo: 'reg',
       grenadeTimer: 0,
+      health: 100,
     })}
     else if( players.length === 3){players.push({
       id: socket.id,
@@ -539,6 +566,7 @@ async function main(){
       dead: false,
       ammo: 'reg',
       grenadeTimer: 0,
+      health: 100,
     })}
     else{
       socket.emit('full')
@@ -579,7 +607,7 @@ async function main(){
     socket.on('input', (inputs) => {
       const player = players.find((player) => player.id === socket.id)
 
-      inputsMap[socket.id] = inputs;
+      inputsMap[player.id] = inputs;
     })
 
     socket.on('grenadeHold', inputs => {
