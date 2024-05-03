@@ -5,7 +5,6 @@ import Canvas from './Canvas'
 
 function App() {
   const [socket,setSocket] = useState(null)
-  const [message, setMessage] = useState('old')
   const [map, setMap] = useState(null)
   const canvasRef = useRef(null);
   const initialized = useRef(false)
@@ -16,6 +15,7 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [full, setFull] = useState(false)
   const [playerFences, setPlayerFences] = useState([])
+
 
   const keys = new Map();
 
@@ -77,7 +77,8 @@ function App() {
       socket.on('game', (gameState) => {
         window.removeEventListener('keydown', handleKeyDown)
         window.removeEventListener('keyup', handleKeyUp)
-        window.removeEventListener('click', handleClick)
+        window.removeEventListener('mouseup', handleMouseUp)
+        window.removeEventListener('mousedown', handleMouseDown)
         setWinner(null)
         setGame(gameState)
       })
@@ -92,7 +93,8 @@ function App() {
 
       window.addEventListener('keydown', handleKeyDown)
       window.addEventListener('keyup', handleKeyUp)
-      window.addEventListener('click', handleClick)
+      window.addEventListener('mouseup', handleMouseUp)
+      window.addEventListener('mousedown', handleMouseDown)
 
     }}, [socket, game]);
 
@@ -226,7 +228,12 @@ function App() {
 
   }
 
-  function handleClick(e){
+  function handleMouseDown(){
+    if(!game){return}
+    socket.emit('grenadeHold', inputs)
+  }
+
+  function handleMouseUp(e){
 
     if(!game){return}
 
@@ -237,6 +244,7 @@ function App() {
     
     socket.emit('fire', angle)
   }
+
   return (
     <div>
       {full && <div>Server is full, try again later</div>}

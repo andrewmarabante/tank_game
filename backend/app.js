@@ -28,6 +28,7 @@ const REG_SPEED = 7;
 const BIG_SPEED = 10;
 const GRENADE_SPEED = 7;
 
+
 const TILE_SIZE = 16
 
 let gameState = false;
@@ -57,10 +58,12 @@ let projectiles = [];
 let terrain = [];
 let playerFences = [];
 
+let grenadeIntervals = {};
 let inputsMap = {}
 
 function gameOver(winner){
   players.map(player => {
+    
     if(player.Num === 1){
       player.x = p1Start.x
       player.y = p1Start.y
@@ -84,12 +87,7 @@ function gameOver(winner){
     
     player.dead = false
     player.waiting = false
-  })
-  gameState = false
-  playerFences = []
-  projectiles = []
 
-  players.map(player => {
     inputsMap[player.id] = {
       up: false,
       down: false,
@@ -97,6 +95,9 @@ function gameOver(winner){
       left: false,
     }
   })
+  gameState = false
+  playerFences = []
+  projectiles = []
 
   io.emit('game', false)
   io.emit('winner', winner.Num)
@@ -341,6 +342,7 @@ function tick(){
         }
         else{
           speed = 0;
+          projectile.exploded = true
         }
 
       }
@@ -366,8 +368,6 @@ function tick(){
           hitDistance = 25
         }else if(projectile.ammo === 'big'){
           hitDistance = 35
-        }else if(projectile.ammo === ''){
-          hitDistance = 50
         }
         
         if(distance <=hitDistance && projectile.id !== player.id && (projectile.ammo === 'reg' || 'big')){
@@ -381,8 +381,9 @@ function tick(){
             gameOver(livingPlayers[0])
           }
         }
-        if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && projectile.exploded){
-         
+        
+        if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
+
           player.dead = true
           player.ghostX = player.x
           player.ghostY = player.y
@@ -391,9 +392,6 @@ function tick(){
           if(livingPlayers.length === 1){
             gameOver(livingPlayers[0])
           }
-        }else if(projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
-          
-         projectile.exploded = true;
         }
 
 
@@ -484,6 +482,7 @@ async function main(){
       Num: 1,
       dead: false,
       ammo: 'reg',
+      grenadeTimer: 0,
     })}
     else if( players.length === 1){players.push({
       id: socket.id,
@@ -496,6 +495,7 @@ async function main(){
       Num: 2,
       dead: false,
       ammo: 'reg',
+      grenadeTimer: 0,
     })}
     else if( players.length === 2){players.push({
       id: socket.id,
@@ -508,6 +508,7 @@ async function main(){
       Num: 3,
       dead: false,
       ammo: 'reg',
+      grenadeTimer: 0,
     })}
     else if( players.length === 3){players.push({
       id: socket.id,
@@ -520,6 +521,7 @@ async function main(){
       Num: 4,
       dead: false,
       ammo: 'reg',
+      grenadeTimer: 0,
     })}
     else{
       socket.emit('full')
@@ -563,12 +565,31 @@ async function main(){
       inputsMap[socket.id] = inputs;
     })
 
+    socket.on('grenadeHold', inputs => {
+
+      const player = players.find((player) => player.id === socket.id)
+
+      if(player.ammo === 'grenade'){
+        grenadeIntervals[player.id] = setInterval(() =>{
+          player.grenadeTimer += 40
+        }, 33.33)
+      }
+
+
+    })
+
     socket.on('fire', (angle) => {
+
       const player = players.find((player) => player.id === socket.id)
 
       if(player.dead){return}
 
       let radius;
+      let grenadeTimer = 2000 - player.grenadeTimer;
+
+      if(grenadeTimer < 5){
+        grenadeTimer = 5
+      }
 
       if(player.ammo === 'reg'){
         radius = 5
@@ -582,6 +603,7 @@ async function main(){
 
         const fenceX = player.x + Math.cos(angle)*60
         const fenceY = player.y + Math.sin(angle)*60
+        
 
         playerFences.push({
           id: socket.id,
@@ -615,9 +637,11 @@ async function main(){
           ammo: player.ammo,
           collide: false,
           radius: 10,
-          timer: 2000,
+          timer: grenadeTimer,
           exploded: false,
         })
+        clearInterval(grenadeIntervals[player.id])
+        player.grenadeTimer = 0
       }
       else {
         projectiles.push({

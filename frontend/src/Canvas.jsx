@@ -43,6 +43,12 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
     const explosion = new Image();
     explosion.src = '/src/assets/Explosion.png'
+    
+    const redMeter = new Image();
+    redMeter.src = '/src/assets/redMeter.png'
+
+    const blueMeter = new Image();
+    blueMeter.src = '/src/assets/blueMeter.png'
 
 
 
@@ -138,6 +144,78 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
       players.map((player)=>{
 
+        if(player.ammo === 'grenade' && player.grenadeTimer !== 0){
+
+          let leftOffset;
+          let topOffset;
+          let blueHeight = (player.grenadeTimer%2000/2000)*33
+
+          if(player.grenadeTimer >= 2000){
+            blueHeight = 33
+          }
+        
+          
+          if(player.direction === 'upLeft'){
+            leftOffset = 40
+            topOffset = 20
+            }
+            else if(player.direction === 'up'){
+              leftOffset = 30
+              topOffset = 20   
+            }
+            else if(player.direction === 'upRight'){
+              leftOffset = 30
+              topOffset = 20
+            }
+            else if(player.direction === 'right'){
+              leftOffset = 20
+              topOffset = 20           
+             }
+            else if(player.direction === 'downRight'){
+              leftOffset = 30
+              topOffset = 10         
+             }
+            else if(player.direction === 'down'){
+              leftOffset = 30
+              topOffset = 10           
+             }
+            else if(player.direction === 'downLeft'){
+              leftOffset = 40
+              topOffset = 10            
+            }
+            else if(player.direction === 'left')
+            {
+              leftOffset = 40
+              topOffset = 20            
+            }
+          
+            ctx.drawImage(
+            redMeter,
+            player.x -leftOffset -camX,
+            player.y -topOffset -camY,
+            5,
+            33
+        )
+
+        ctx.translate(player.x -leftOffset +2.5 -camX, player.y -topOffset +16.5 -camY,)
+
+        ctx.rotate(Math.PI)
+
+        ctx.translate(-player.x +leftOffset -2.5 +camX, -player.y +topOffset -16.5 +camY,)
+
+          ctx.drawImage(
+            blueMeter,
+            player.x -leftOffset -camX,
+            player.y -topOffset -camY,
+            5,
+            blueHeight,
+      )
+
+         ctx.setTransform(1,0,0,1,0,0);
+
+
+      }
+
         ctx.translate(player.x -camX, player.y - camY)
 
         if(player.direction === 'upLeft'){
@@ -165,7 +243,8 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         {
           ctx.rotate(0)
         }
-
+        
+        
         ctx.translate(-player.x + camX, -player.y + camY); 
 
         //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
@@ -176,6 +255,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         40,
         40
       )
+
 
       ctx.setTransform(1,0,0,1,0,0);
 
