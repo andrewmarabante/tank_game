@@ -15,6 +15,7 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [full, setFull] = useState(false)
   const [playerFences, setPlayerFences] = useState([])
+  const [currentPlayer, setCurrentPlayer]= useState(null)
 
 
   const keys = new Map();
@@ -64,9 +65,11 @@ function App() {
       socket.on('players', function (serverPlayers) {
        
         const currentPlayer = serverPlayers.find(player => player.id === socket.id)
-          if(currentPlayer.Num === 1){
+          
+        if(currentPlayer.Num === 1){
             setLeader(true)
           }
+          setCurrentPlayer(currentPlayer)
           setPlayers(serverPlayers)
       });
 
@@ -250,7 +253,7 @@ function App() {
       {full && <div>Server is full, try again later</div>}
       {map && <Canvas map = {map} players = {players} projectiles = {projectiles} 
       socket = {socket} leader = {leader} game={game} winner={winner}
-      playerFences = {playerFences}
+      playerFences = {playerFences} currentPlayer = {currentPlayer}
       />}
     </div>
   )

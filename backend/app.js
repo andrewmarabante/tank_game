@@ -62,6 +62,8 @@ let grenadeIntervals = {};
 let inputsMap = {}
 
 function gameOver(winner){
+  console.log('gameOver')
+
   players.map(player => {
     
     if(player.Num === 1){
@@ -371,7 +373,9 @@ function tick(){
         }
         
         if(distance <=hitDistance && projectile.id !== player.id && (projectile.ammo === 'reg' || 'big')){
-          projectiles = projectiles.filter(projectile => projectile.id !== projectile.id)
+
+          projectile.collide = true;
+          projectiles = projectiles.filter(projectile => projectile.collide !== true)
           player.dead = true
           player.ghostX = player.x
           player.ghostY = player.y
