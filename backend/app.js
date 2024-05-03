@@ -410,6 +410,18 @@ function tick(){
         }
       })
 
+      if(projectile.ammo === 'mine'){
+        projectiles.map(projectile2 => {
+          if(projectile2.ammo === 'grenade' && projectile2.timer <= 0 && !projectile2.exploded ){
+            let distance = Math.sqrt((projectile.x - projectile2.x)**2 + (projectile.y - projectile2.y)**2)
+            
+            if(distance <= 50){
+              projectile.exploded = true
+            }
+          }
+        })
+      }
+
       if(isColliding(projectile, terrain, true)){
 
         if(projectile.ammo === 'reg'){
@@ -423,6 +435,7 @@ function tick(){
 
       }
     })
+    
 
 
     io.emit('players', players)
