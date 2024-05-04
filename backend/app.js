@@ -57,6 +57,7 @@ let players = [];
 let projectiles = [];
 let terrain = [];
 let playerFences = [];
+let explodedMines = []
 
 let grenadeIntervals = {};
 let inputsMap = {}
@@ -153,6 +154,7 @@ function circleRectCollide(circle, rectangle) {
 
 
 function isColliding(object, terrain, isProjectile){
+  //player collision
   if(!isProjectile){
     for(let structures = 0 ; structures < terrain.length; structures++){
       for(let i = 0; i < terrain[structures].length; i++){
@@ -171,9 +173,23 @@ function isColliding(object, terrain, isProjectile){
       if(circleRectCollide(object, playerFences[i])){
         return true
       }}
+
+    for(let i = 0; i < explodedMines.length; i++){
+
+      if(
+        object.x < explodedMines[i].x + explodedMines[i].w &&
+        object.x + object.w > explodedMines[i].x &&
+        object.y < explodedMines[i].y + explodedMines[i].h &&
+        object.y + object.h > explodedMines[i].y
+      ){
+        return true
+      }
+    }
       
     return false
-  }else if(object.ammo === 'reg' && isProjectile){
+  }
+  //projectile collision
+  else if(object.ammo === 'reg' && isProjectile){
 
     let radius = 5;
 
@@ -487,6 +503,43 @@ function tick(){
           }
 
           projectile.exploded = true;
+
+          explodedMines.push({
+            x: projectile.x -10,
+            y: projectile.y -10,
+            w: 65,
+            h: 65,
+          })
+
+          if(player.direction === 'upLeft'){
+            player.y += SPEED *.71*3
+            player.x += SPEED *.71*3
+          }
+          else if(player.direction === 'upRight'){
+              player.y += SPEED *.71*3
+              player.x -= SPEED  *.71  *3 
+          }
+          else if(player.direction === 'downRight'){
+              player.y -= SPEED *.71*3
+              player.x -= SPEED *.71   *3 
+           }
+          else if(player.direction === 'downRight'){
+              player.y -= SPEED *.71*3
+              player.x += SPEED *.71 *3
+          }
+          else if(player.direction === 'up'){
+              player.y += SPEED*3
+          }
+          else if(player.direction === 'down'){
+              player.y -= SPEED*3
+          }
+          else if(player.direction === 'left'){
+              player.x += SPEED*3
+          }
+          else if(player.direction === 'right'){
+              player.x -= SPEED*3
+          }
+
           player.ghostX = player.x
           player.ghostY = player.y
           //Checking if gameOver
@@ -504,6 +557,12 @@ function tick(){
             
             if(distance <= 50){
               projectile.exploded = true
+              explodedMines.push({
+              x: projectile.x -10,
+              y: projectile.y -10,
+              w: 65,
+              h: 65,
+          })
             }
           }
         })
