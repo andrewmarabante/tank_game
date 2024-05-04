@@ -62,7 +62,6 @@ let grenadeIntervals = {};
 let inputsMap = {}
 
 function gameOver(winner){
-  console.log('gameOver')
 
   players.map(player => {
     
@@ -71,24 +70,28 @@ function gameOver(winner){
       player.y = p1Start.y
       player.direction = 'up'
       player.health = 100
+      player.fenceAmmo = 7
     }
     else if(player.Num === 2){
       player.x = p2Start.x
       player.y = p2Start.y
       player.direction = 'down'
       player.health = 100
+      player.fenceAmmo = 7
     }
     else if(player.Num === 3){
       player.x = p3Start.x
       player.y = p3Start.y
       player.direction = 'down'
       player.health = 100
+      player.fenceAmmo = 7
     }
     else if(player.Num === 4){
       player.x = p4Start.x
       player.y = p4Start.y
       player.direction = 'up'
       player.health = 100
+      player.fenceAmmo = 7
     }
     
     player.dead = false
@@ -222,6 +225,64 @@ function isColliding(object, terrain, isProjectile){
 function tick(){
     players.map((player)=> {
 
+      //reg
+
+      if(player.regAmmo < 10){
+        player.regRate +=1;
+      }
+
+      if(player.regRate%15 === 0){
+        player.regAmmo ++;
+      }
+
+      if(player.regAmmo === 10){
+        player.regRate = 1
+      }
+
+      //big
+
+      if(player.bigAmmo < 10){
+        player.bigRate +=1;
+      }
+
+      if(player.bigRate%75 === 0 && player.bigAmmo !== 1){
+        player.bigAmmo ++;
+      }
+
+      if(player.bigAmmo === 1){
+        player.bigRate = 1
+      }
+
+      //mine
+
+      if(player.mineAmmo < 10){
+        player.mineRate +=1;
+      }
+
+      if(player.mineRate%100 === 0 && player.mineAmmo !== 1){
+        player.mineAmmo ++;
+      }
+
+      if(player.mineAmmo === 1){
+        player.mineRate = 1
+      }
+
+      //grenade
+
+      if(player.grenadeAmmo < 10){
+        player.grenadeRate +=1;
+      }
+
+      if(player.grenadeRate%75 === 0 && player.grenadeAmmo !== 1){
+        player.grenadeAmmo ++;
+      }
+
+      if(player.grenadeAmmo === 1){
+        player.grenadeRate = 1
+      }
+
+      
+      
       const inputs = inputsMap[player.id]
 
       const prevX = player.x
@@ -341,7 +402,7 @@ function tick(){
       }
       else if(projectile.ammo === 'grenade'){
 
-        if(projectile.timer >0){
+        if(projectile.timer > 0){
           speed = GRENADE_SPEED
           projectile.spin += 1/4
           projectile.timer -= 40;
@@ -406,17 +467,16 @@ function tick(){
           
           if(player.health <= 0){
             player.dead = true
-          }
 
-          player.ghostX = player.x
-          player.ghostY = player.y
-          //Checking if gameOver
-          livingPlayers = players.filter(player => player.dead === false)
-          if(livingPlayers.length === 1){
-            gameOver(livingPlayers[0])
+            player.ghostX = player.x
+            player.ghostY = player.y
+            //Checking if gameOver
+            livingPlayers = players.filter(player => player.dead === false)
+            if(livingPlayers.length === 1){
+              gameOver(livingPlayers[0])
+            }
           }
         }
-
 
         if(distance <= 50 && projectile.ammo === 'mine' && projectile.timer <= 0 && !projectile.exploded){
           
@@ -525,6 +585,15 @@ async function main(){
       ammo: 'reg',
       grenadeTimer: 0,
       health: 100,
+      regAmmo: 10,
+      regRate: 1,
+      bigAmmo: 1,
+      bigRate: 1,
+      mineAmmo: 1,
+      mineRate: 1,
+      grenadeAmmo: 1,
+      grenadeRate: 1,
+      fenceAmmo: 7,
     })}
     else if( players.length === 1){players.push({
       id: socket.id,
@@ -539,6 +608,15 @@ async function main(){
       ammo: 'reg',
       grenadeTimer: 0,
       health: 100,
+      regAmmo: 10,
+      regRate: 1,
+      bigAmmo: 1,
+      bigRate: 1,
+      mineAmmo: 1,
+      mineRate: 1,
+      grenadeAmmo: 1,
+      grenadeRate: 1,
+      fenceAmmo: 7,
     })}
     else if( players.length === 2){players.push({
       id: socket.id,
@@ -550,9 +628,18 @@ async function main(){
       direction: 'down',
       Num: 3,
       dead: false,
+      regAmmo: 10,
       ammo: 'reg',
       grenadeTimer: 0,
       health: 100,
+      regRate: 1,
+      bigAmmo: 1,
+      bigRate: 1,
+      mineAmmo: 1,
+      mineRate: 1,
+      grenadeAmmo: 1,
+      grenadeRate: 1,
+      fenceAmmo: 7,
     })}
     else if( players.length === 3){players.push({
       id: socket.id,
@@ -567,6 +654,15 @@ async function main(){
       ammo: 'reg',
       grenadeTimer: 0,
       health: 100,
+      regAmmo: 10,
+      regRate: 1,
+      bigAmmo: 1,
+      bigRate: 1,
+      mineAmmo: 1,
+      mineRate: 1,
+      grenadeAmmo: 1,
+      grenadeRate: 1,
+      fenceAmmo: 7,
     })}
     else{
       socket.emit('full')
@@ -614,7 +710,7 @@ async function main(){
 
       const player = players.find((player) => player.id === socket.id)
 
-      if(player.ammo === 'grenade'){
+      if(player.ammo === 'grenade' && player.grenadeAmmo === 1){
         grenadeIntervals[player.id] = setInterval(() =>{
           player.grenadeTimer += 40
         }, 33.33)
@@ -632,19 +728,43 @@ async function main(){
       let radius;
       let grenadeTimer = 2000 - player.grenadeTimer;
 
-      if(grenadeTimer < 5){
-        grenadeTimer = 5
+      if(grenadeTimer < 10){
+        grenadeTimer = 10
       }
 
       if(player.ammo === 'reg'){
+        if(player.regAmmo <= 0){
+          return
+        }
         radius = 5
+        player.regAmmo--;
       }
       else if(player.ammo === 'big'){
+        if(player.bigAmmo <= 0){
+          return
+        }
         radius = 15
+        player.bigAmmo--
+      }
+      else if(player.ammo === 'mine'){
+        if(player.mineAmmo <= 0){
+          return
+        }
+        player.mineAmmo--
+      }
+      else if(player.ammo === 'grenade'){
+        if(player.grenadeAmmo <= 0){
+          return
+        }
+        player.grenadeAmmo--
       }
 
 
       if(player.ammo === 'fence'){
+
+        if(player.fenceAmmo === 0){
+          return
+        }
 
         const fenceX = player.x + Math.cos(angle)*60
         const fenceY = player.y + Math.sin(angle)*60
@@ -658,6 +778,8 @@ async function main(){
           height: 100,
           width: 20,
         })
+
+        player.fenceAmmo --;
       }
       else if(player.ammo === 'mine'){
         projectiles.push({
@@ -696,7 +818,7 @@ async function main(){
         y: player.y,
         ammo: player.ammo,
         collide: false,
-        radius: radius
+        radius: radius,
       })}
       
     })

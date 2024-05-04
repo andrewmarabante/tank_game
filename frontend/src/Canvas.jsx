@@ -12,6 +12,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
     const [p3Blink, setP3Blink] = useState(0)
     const [p4Blink, setP4Blink] = useState(0)
 
+
     const grass = new Image();
     grass.src = '/src/assets/grassMap/Grass.png'
 
@@ -508,20 +509,26 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
       {game && <div className='absolute left-1/4 bottom-5 w-2/4 h-1/6 bg-black opacity-50 rounded-2xl flex justify-around items-center p-2 pt-4 pb-4'>
-        <div className={`bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'reg' ? 'border-5 mb-3' : 'opacity-40'}`}>
+        <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'reg' ? 'border-5 mb-3' : 'opacity-40'}`}>
           <img src='/src/assets/Bullet.png' className='w-4/6 select-none'  alt="Bullet" />
+          <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.regAmmo}</div>
         </div>
-        <div className={`bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'big' ? 'border-5 mb-3' : 'opacity-40'}`}>
-          <img src='/src/assets/Purple.png' className='w-4/6 select-none'  alt="Bullet" />
+        <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'big' ? 'border-5 mb-3' : 'opacity-40'}`}>
+          <img src='/src/assets/Purple.png' className='w-4/6 select-none'  alt="Purple" />
+          <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.bigAmmo}</div>
         </div>
-        <div className={`bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'fence' ? 'border-5 mb-3' : 'opacity-40'}`}>
-        <img src='/src/assets/Barricade.png' className='w-4/6 select-none'  alt="Bullet" />
+        <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'fence' ? 'border-5 mb-3' : 'opacity-40'}`}>
+        <img src='/src/assets/Barricade.png' className='w-4/6 select-none'  alt="Fence" />
+        <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.fenceAmmo}</div>
+
         </div>
-        <div className={`bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'mine' ? 'border-5 mb-3' : 'opacity-40'}`}>
+        <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'mine' ? 'border-5 mb-3' : 'opacity-40'}`}>
         <img src='/src/assets/Landmine.png' className='w-4/6 select-none'  alt="Mine" />
+        <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.mineAmmo}</div>
         </div>
-        <div className={`bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'grenade' ? 'border-5 mb-3' : 'opacity-40'}`}>
+        <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'grenade' ? 'border-5 mb-3' : 'opacity-40'}`}>
         <img src='/src/assets/Grenade.png' className='h-4/6 select-none'  alt="Grenade" />
+        <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.grenadeAmmo}</div>
         </div>
       </div>}
       {dead && <div className='absolute top-0 left-0  w-full h-full bg-black opacity-20'></div>}

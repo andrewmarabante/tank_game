@@ -232,6 +232,7 @@ function App() {
   }
 
   function handleMouseDown(){
+
     if(!game){return}
     socket.emit('grenadeHold', inputs)
   }
