@@ -1,9 +1,21 @@
+import gameMusic from '/src/assets/gamemusic-6082.mp3'
+import bigHit from '/src/assets/bigHit.mp3'
 import { useEffect, useState, useRef } from 'react'
 import './App.css'
 import io from 'socket.io-client'
 import Canvas from './Canvas'
+import PlayerSounds from './PlayerSounds'
 
 function App() {
+    // const [audioFiles] = useState({
+    //   grenadeExplo: createAudio('/src/assets/grenadeExplo.mp3'),
+    //   smallGun: createAudio('/src/assets/gunSound.mp3'),
+    //   mineExplode: createAudio('/src/assets/mineExplode.mp3'),
+    //   bigGun: createAudio('/src/assets/missileFire.mp3'),
+    //   smallHit: createAudio('/src/assets/smallHit.mp3'),
+    // });
+
+
   const [socket,setSocket] = useState(null)
   const [map, setMap] = useState(null)
   const canvasRef = useRef(null);
@@ -16,6 +28,9 @@ function App() {
   const [full, setFull] = useState(false)
   const [playerFences, setPlayerFences] = useState([])
   const [currentPlayer, setCurrentPlayer]= useState(null)
+  const [connected, setConnected] = useState(false);
+  const [sound, setSound] = useState(null)
+  const [cont, setCont] = useState(false)
 
 
   const keys = new Map();
@@ -41,7 +56,7 @@ function App() {
     initialized.current = true;
 
     socketInstance.on('connect', () => {
-      console.log('Connected to server');
+      setConnected(true)
     });
   }
   
@@ -69,8 +84,8 @@ function App() {
         if(currentPlayer.Num === 1){
             setLeader(true)
           }
-          setCurrentPlayer(currentPlayer)
-          setPlayers(serverPlayers)
+        setCurrentPlayer(currentPlayer)
+        setPlayers(serverPlayers)
       });
 
       socket.on('projectiles', (serverProjectiles) => {
@@ -100,6 +115,17 @@ function App() {
       window.addEventListener('mousedown', handleMouseDown)
 
     }}, [socket, game]);
+
+  function play(sound){
+
+   const audio = new Audio(sound)
+
+   if(sound === gameMusic){
+    audio.loop = true
+    audio.play()
+   }
+
+  }
 
   function handleKeyDown(e){
 
@@ -234,6 +260,8 @@ function App() {
   function handleMouseDown(){
 
     if(!game){return}
+
+    play(bigHit)
     socket.emit('grenadeHold', inputs)
   }
 
@@ -249,13 +277,25 @@ function App() {
     socket.emit('fire', angle)
   }
 
+  function startGame(){
+    setCont(true);
+    play(gameMusic)
+  }
+
   return (
     <div>
       {full && <div>Server is full, try again later</div>}
-      {map && <Canvas map = {map} players = {players} projectiles = {projectiles} 
+      {map && connected && cont && <Canvas map = {map} players = {players} projectiles = {projectiles} 
       socket = {socket} leader = {leader} game={game} winner={winner}
       playerFences = {playerFences} currentPlayer = {currentPlayer}
       />}
+      {!connected && !full && <div>
+        Attempting to connect
+        </div>}
+      {connected && !cont && <div>
+        <button onClick={startGame}>Continue to game</button>
+        </div>}
+        <PlayerSounds players = {players} currentPlayer={currentPlayer}/>
     </div>
   )
 }

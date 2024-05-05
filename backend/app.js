@@ -511,33 +511,35 @@ function tick(){
             h: 65,
           })
 
+          let distanceToOutside = 70 - distance
+
           if(player.direction === 'upLeft'){
-            player.y += SPEED *.71*3
-            player.x += SPEED *.71*3
+            player.y += distanceToOutside *.71
+            player.x += distanceToOutside *.71
           }
           else if(player.direction === 'upRight'){
-              player.y += SPEED *.71*3
-              player.x -= SPEED  *.71  *3 
+              player.y += distanceToOutside *.71
+              player.x -= distanceToOutside *.71
           }
           else if(player.direction === 'downRight'){
-              player.y -= SPEED *.71*3
-              player.x -= SPEED *.71   *3 
+              player.y -= distanceToOutside *.71
+              player.x -= distanceToOutside *.71
            }
           else if(player.direction === 'downRight'){
-              player.y -= SPEED *.71*3
-              player.x += SPEED *.71 *3
+              player.y -= distanceToOutside *.71
+              player.x += distanceToOutside *.71
           }
           else if(player.direction === 'up'){
-              player.y += SPEED*3
+              player.y += distanceToOutside 
           }
           else if(player.direction === 'down'){
-              player.y -= SPEED*3
+              player.y -= distanceToOutside 
           }
           else if(player.direction === 'left'){
-              player.x += SPEED*3
+              player.x += distanceToOutside
           }
           else if(player.direction === 'right'){
-              player.x -= SPEED*3
+              player.x -= distanceToOutside
           }
 
           player.ghostX = player.x
@@ -653,6 +655,7 @@ async function main(){
       grenadeAmmo: 1,
       grenadeRate: 1,
       fenceAmmo: 7,
+      moving: false,
     })}
     else if( players.length === 1){players.push({
       id: socket.id,
@@ -676,6 +679,7 @@ async function main(){
       grenadeAmmo: 1,
       grenadeRate: 1,
       fenceAmmo: 7,
+      moving: false,
     })}
     else if( players.length === 2){players.push({
       id: socket.id,
@@ -699,6 +703,7 @@ async function main(){
       grenadeAmmo: 1,
       grenadeRate: 1,
       fenceAmmo: 7,
+      moving: false,
     })}
     else if( players.length === 3){players.push({
       id: socket.id,
@@ -722,6 +727,7 @@ async function main(){
       grenadeAmmo: 1,
       grenadeRate: 1,
       fenceAmmo: 7,
+      moving: false,
     })}
     else{
       socket.emit('full')
@@ -761,6 +767,12 @@ async function main(){
   
     socket.on('input', (inputs) => {
       const player = players.find((player) => player.id === socket.id)
+
+      if(inputs.up || inputs.down || inputs.right || inputs.left){
+        player.moving = true
+      }else{
+        player.moving = false
+      }
 
       inputsMap[player.id] = inputs;
     })
