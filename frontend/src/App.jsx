@@ -5,17 +5,9 @@ import './App.css'
 import io from 'socket.io-client'
 import Canvas from './Canvas'
 import PlayerSounds from './PlayerSounds'
+import ProjectileSounds from './ProjectileSounds'
 
 function App() {
-    // const [audioFiles] = useState({
-    //   grenadeExplo: createAudio('/src/assets/grenadeExplo.mp3'),
-    //   smallGun: createAudio('/src/assets/gunSound.mp3'),
-    //   mineExplode: createAudio('/src/assets/mineExplode.mp3'),
-    //   bigGun: createAudio('/src/assets/missileFire.mp3'),
-    //   smallHit: createAudio('/src/assets/smallHit.mp3'),
-    // });
-
-
   const [socket,setSocket] = useState(null)
   const [map, setMap] = useState(null)
   const canvasRef = useRef(null);
@@ -31,6 +23,7 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [sound, setSound] = useState(null)
   const [cont, setCont] = useState(false)
+  const [explodedProjectiles, setExplodedProjectiles] = useState([[],[],[],[],[]])
 
 
   const keys = new Map();
@@ -107,6 +100,10 @@ function App() {
 
       socket.on('playerFences', playerFences => {
         setPlayerFences(playerFences)
+      })
+
+      socket.on('explodedProjectiles', serverExplodedProjectiles => {
+        setExplodedProjectiles(serverExplodedProjectiles)
       })
 
       window.addEventListener('keydown', handleKeyDown)
@@ -296,6 +293,7 @@ function App() {
         <button onClick={startGame}>Continue to game</button>
         </div>}
         <PlayerSounds players = {players} currentPlayer={currentPlayer}/>
+        <ProjectileSounds projectiles={projectiles} currentPlayer={currentPlayer} explodedProjectiles = {explodedProjectiles}/>
     </div>
   )
 }

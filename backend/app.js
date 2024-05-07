@@ -12,6 +12,13 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const { promiseHooks } = require('v8');
 
+const { randomBytes } = require('crypto');
+
+function generateRandomId(length = 5) {
+    const bytes = randomBytes(Math.ceil(length / 2));
+    return bytes.toString('hex').slice(0, length);
+}
+
 var app = express();
 
 var server = http.createServer(app)
@@ -58,6 +65,9 @@ let projectiles = [];
 let terrain = [];
 let playerFences = [];
 let explodedMines = []
+
+//4 arrays for reg, big, mine, and grenade
+let explodedProjectiles = [[],[],[],[], []]
 
 let grenadeIntervals = {};
 let inputsMap = {}
@@ -106,8 +116,9 @@ function gameOver(winner){
     }
   })
   gameState = false
-  playerFences = []
-  projectiles = []
+  playerFences = [];
+  explodedMines = [];
+  projectiles = [];
 
   io.emit('game', false)
   io.emit('winner', winner.Num)
@@ -201,14 +212,40 @@ function isColliding(object, terrain, isProjectile){
 
       if( (distX < (terrain[0][i].w/2 + radius)) && (distY < (terrain[0][i].h/2 + radius)) ){
        
-        if (distX <= (terrain[0][i].w/2)) { return true; } 
-        if (distY <= (terrain[0][i].h/2)) { return true; }
+        if (distX <= (terrain[0][i].w/2)) {
+          explodedProjectiles[0].push({
+            id: generateRandomId(),
+            playerId: object.id,
+            x: object.x,
+            y: object.y,
+            ammo: object.ammo,
+            hit: 'fence'
+          })
+          return true; } 
+        if (distY <= (terrain[0][i].h/2)) {
+          explodedProjectiles[0].push({
+            id: generateRandomId(),
+            playerId: object.id,
+            x: object.x,
+            y: object.y,
+            ammo: object.ammo,
+            hit: 'fence'
+          })
+          return true; }
       }
   }
 
   for(let i=0; i<playerFences.length; i++){
     if(circleRectCollide(object, playerFences[i])){
-    return true
+      explodedProjectiles[0].push({
+        id: generateRandomId(),
+        playerId: object.id,
+        x: object.x,
+        y: object.y,
+        ammo: object.ammo,
+        hit: 'fence'
+      })
+      return true
   }}
 
    return false
@@ -421,11 +458,16 @@ function tick(){
         if(projectile.timer > 0){
           speed = GRENADE_SPEED
           projectile.spin += 1/4
-          projectile.timer -= 40;
+          projectile.timer -= 40
         }
-        else{
+        else if(projectile.timer <= 0 && !projectile.exploded){
           speed = 0;
           projectile.exploded = true
+          explodedProjectiles[4].push({
+            id: generateRandomId(),
+            x: projectile.x,
+            y: projectile.y,
+          })
         }
 
       }
@@ -459,9 +501,29 @@ function tick(){
           projectiles = projectiles.filter(projectile => projectile.collide !== true)
           
           if(projectile.ammo === 'reg'){
+            
+            explodedProjectiles[0].push({
+              id: generateRandomId(),
+              playerId: projectile.id,
+              x: projectile.x,
+              y: projectile.y,
+              ammo: 'reg',
+              hit: 'player'
+            })
+
             player.health -= 3
           }
           else if(projectile.ammo === 'big'){
+
+            explodedProjectiles[1].push({
+              id: generateRandomId(),
+              playerId: projectile.id,
+              x: projectile.x,
+              y: projectile.y,
+              ammo: 'big',
+              hit: 'player'
+            })
+
             player.health -= 20
           }
 
@@ -503,6 +565,13 @@ function tick(){
           }
 
           projectile.exploded = true;
+
+          explodedProjectiles[3].push({
+            id: generateRandomId(),
+
+            x: projectile.x,
+            y: projectile.y,
+          })
 
           explodedMines.push({
             x: projectile.x -10,
@@ -559,6 +628,13 @@ function tick(){
             
             if(distance <= 50){
               projectile.exploded = true
+
+              explodedProjectiles[3].push({
+                id: generateRandomId(),
+                x: projectile.x,
+                y: projectile.y,
+              })
+              
               explodedMines.push({
               x: projectile.x -10,
               y: projectile.y -10,
@@ -585,7 +661,7 @@ function tick(){
     })
     
 
-
+    io.emit('explodedProjectiles', explodedProjectiles)
     io.emit('players', players)
     io.emit('projectiles', projectiles)
     io.emit('playerFences', playerFences)
@@ -842,6 +918,7 @@ async function main(){
         
 
         playerFences.push({
+          uniqueId: generateRandomId(),
           id: socket.id,
           angle : angle,
           x: fenceX,
@@ -850,10 +927,18 @@ async function main(){
           width: 20,
         })
 
+        explodedProjectiles[2].push({
+          id: generateRandomId(),
+          playerId: player.id,
+          x: fenceX,
+          y: fenceY,
+        })
+
         player.fenceAmmo --;
       }
       else if(player.ammo === 'mine'){
         projectiles.push({
+          uniqueId: generateRandomId(),
           id: socket.id,
           angle : angle,
           x: player.x,
@@ -867,6 +952,7 @@ async function main(){
       }
       else if(player.ammo === 'grenade'){
         projectiles.push({
+          uniqueId: generateRandomId(),
           id: socket.id,  
           angle : angle,
           spin: angle,
@@ -883,6 +969,7 @@ async function main(){
       }
       else {
         projectiles.push({
+        uniqueId: generateRandomId(),
         id: socket.id,
         angle : angle,
         x: player.x,
