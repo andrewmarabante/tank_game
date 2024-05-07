@@ -112,9 +112,4 @@ export default function PlayerSounds({players, currentPlayer}){
             }
         })
     }, [players])
-
-
-    return(
-        <div></div>
-    )
 }

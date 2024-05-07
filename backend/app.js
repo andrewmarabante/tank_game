@@ -307,7 +307,7 @@ function tick(){
         player.mineRate +=1;
       }
 
-      if(player.mineRate%100 === 0 && player.mineAmmo !== 1){
+      if(player.mineRate%200 === 0 && player.mineAmmo !== 1){
         player.mineAmmo ++;
       }
 
@@ -467,7 +467,7 @@ function tick(){
 
       }
       else if(projectile.ammo === 'mine'){
-        //working on making the mine interactive. Just put a timer on it.
+
         if(projectile.timer >0 ){
         projectile.timer -= 20;
         }
@@ -506,7 +506,7 @@ function tick(){
               hit: 'player'
             })
 
-            player.health -= 3
+            player.health -= 5
           }
           else if(projectile.ammo === 'big'){
 
@@ -536,7 +536,7 @@ function tick(){
         
         if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
 
-          player.health -= 20
+          player.health -= 10
           
           if(player.health <= 0){
             player.dead = true
@@ -616,7 +616,7 @@ function tick(){
         }
       })
 
-      if(projectile.ammo === 'mine'){
+      if(projectile.ammo === 'mine' && !projectile.exploded){
         projectiles.map(projectile2 => {
           if(projectile2.ammo === 'grenade' && projectile2.timer <= 0 && !projectile2.exploded ){
             let distance = Math.sqrt((projectile.x - projectile2.x)**2 + (projectile.y - projectile2.y)**2)
@@ -629,13 +629,6 @@ function tick(){
                 x: projectile.x,
                 y: projectile.y,
               })
-              
-              explodedMines.push({
-              x: projectile.x -10,
-              y: projectile.y -10,
-              w: 65,
-              h: 65,
-          })
             }
           }
         })
