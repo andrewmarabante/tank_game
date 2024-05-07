@@ -80,33 +80,28 @@ function gameOver(winner){
       player.x = p1Start.x
       player.y = p1Start.y
       player.direction = 'up'
-      player.health = 100
-      player.fenceAmmo = 7
     }
     else if(player.Num === 2){
       player.x = p2Start.x
       player.y = p2Start.y
       player.direction = 'down'
-      player.health = 100
-      player.fenceAmmo = 7
     }
     else if(player.Num === 3){
       player.x = p3Start.x
       player.y = p3Start.y
       player.direction = 'down'
-      player.health = 100
-      player.fenceAmmo = 7
     }
     else if(player.Num === 4){
       player.x = p4Start.x
       player.y = p4Start.y
       player.direction = 'up'
-      player.health = 100
-      player.fenceAmmo = 7
     }
     
     player.dead = false
     player.waiting = false
+    player.health = 100
+    player.fenceAmmo = 7
+    player.moving = false
 
     inputsMap[player.id] = {
       up: false,

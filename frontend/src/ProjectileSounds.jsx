@@ -148,7 +148,6 @@ export default function ProjectileSounds({projectiles, currentPlayer, explodedPr
 
     function calculateVolume(distance) {
         let volume = (-distance+500)/500
-        console.log(volume)
         return Math.max(0, Math.min(volume, 1));
     }
 }
