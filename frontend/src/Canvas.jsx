@@ -14,52 +14,52 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
 
     const grass = new Image();
-    grass.src = '/src/assets/grassMap/Grass.png'
+    grass.src = '/static/grassMap/Grass.png'
 
     const desert = new Image();
-    desert.src = '/src/assets/grassMap/Tilled_Dirt.png'
+    desert.src = '/static/grassMap/Tilled_Dirt.png'
     
     const fence = new Image();
-    fence.src = '/src/assets/grassMap/Fences.png'
+    fence.src = '/static/grassMap/Fences.png'
     
     const water = new Image();
-    water.src = '/src/assets/grassMap/Water.png'
+    water.src = '/static/grassMap/Water.png'
 
     const tank = new Image();
-    tank.src = '/src/assets/Tank.png'
+    tank.src = '/static/images/Tank.png'
 
     const bullet = new Image();
-    bullet.src = '/src/assets/Bullet.png'
+    bullet.src = '/static/images/Bullet.png'
 
     const fire = new Image();
-    fire.src = '/src/assets/Fire.png'
+    fire.src = '/static/images/Fire.png'
 
     const big = new Image();
-    big.src = '/src/assets/Purple.png'
+    big.src = '/static/images/Purple.png'
 
     const playerFence = new Image();
-    playerFence.src = '/src/assets/Barricade.png'
+    playerFence.src = '/static/images/Barricade.png'
 
     const mine = new Image();
-    mine.src = '/src/assets/Landmine.png'
+    mine.src = '/static/images/Landmine.png'
 
     const grenade = new Image();
-    grenade.src = '/src/assets/Grenade.png'
+    grenade.src = '/static/images/Grenade.png'
 
     const explosion = new Image();
-    explosion.src = '/src/assets/Explosion.png'
+    explosion.src = '/static/images/Explosion.png'
     
     const redMeter = new Image();
-    redMeter.src = '/src/assets/redMeter.png'
+    redMeter.src = '/static/images/redMeter.png'
 
     const blueMeter = new Image();
-    blueMeter.src = '/src/assets/blueMeter.png'
+    blueMeter.src = '/static/images/blueMeter.png'
 
     const healthBar = new Image();
-    healthBar.src = '/src/assets/Healthbar.png'
+    healthBar.src = '/static/images/Healthbar.png'
 
     const heart = new Image();
-    heart.src = '/src/assets/Heart.png'
+    heart.src = '/static/images/Heart.png'
 
 
 
@@ -510,24 +510,24 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
       {game && <div className='absolute left-1/4 bottom-5 w-2/4 h-1/6 bg-black opacity-50 rounded-2xl flex justify-around items-center p-2 pt-4 pb-4'>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'reg' ? 'border-5 mb-3' : 'opacity-40'}`}>
-          <img src='/src/assets/Bullet.png' className='w-4/6 select-none'  alt="Bullet" />
+          <img src='/static/images/Bullet.png' className='w-4/6 select-none'  alt="Bullet" />
           <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.regAmmo}</div>
         </div>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'big' ? 'border-5 mb-3' : 'opacity-40'}`}>
-          <img src='/src/assets/Purple.png' className='w-4/6 select-none'  alt="Purple" />
+          <img src='/static/images/Purple.png' className='w-4/6 select-none'  alt="Purple" />
           <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.bigAmmo}</div>
         </div>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'fence' ? 'border-5 mb-3' : 'opacity-40'}`}>
-        <img src='/src/assets/Barricade.png' className='w-4/6 select-none'  alt="Fence" />
+        <img src='/static/images/Barricade.png' className='w-4/6 select-none'  alt="Fence" />
         <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.fenceAmmo}</div>
 
         </div>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'mine' ? 'border-5 mb-3' : 'opacity-40'}`}>
-        <img src='/src/assets/Landmine.png' className='w-4/6 select-none'  alt="Mine" />
+        <img src='/static/images/Landmine.png' className='w-4/6 select-none'  alt="Mine" />
         <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.mineAmmo}</div>
         </div>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'grenade' ? 'border-5 mb-3' : 'opacity-40'}`}>
-        <img src='/src/assets/Grenade.png' className='h-4/6 select-none'  alt="Grenade" />
+        <img src='/static/images/Grenade.png' className='h-4/6 select-none'  alt="Grenade" />
         <div className='absolute right-2 bottom-2 text-xs'>{currentPlayer && currentPlayer.grenadeAmmo}</div>
         </div>
       </div>}

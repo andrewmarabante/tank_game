@@ -14,6 +14,11 @@
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
     "socket.io": "^4.7.5",
+    "tiled-parser": "^0.1.2",
+    "tmx-parser": "^1.5.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.7"
   }
 }

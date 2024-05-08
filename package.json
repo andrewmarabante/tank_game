@@ -1,6 +1,11 @@
 {
+  "name": "tank-game",
   "dependencies": {
     "tiled-parser": "^0.1.2",
     "tmx-parser": "^1.5.0"
+  },
+  "scripts": {
+    "dev" : "nodemon src/index.js",
+    "start" : "node src/index.js"
   }
 }

@@ -6,6 +6,7 @@ async function loadMap(){
     map = await new Promise((resolve, reject) => {
   
       tmx.parseFile('./maps/Grassland.tmx', function(err, mapLoad) {
+        console.log(mapLoad)
         if (err) return  reject(err);
         resolve(mapLoad)
       })
