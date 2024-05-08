@@ -36,7 +36,7 @@ function App() {
     reg: false,
     big: false,
     fence: false,
-    mine: false,
+    mine: false,  
     grenade: false,
   }
 
@@ -44,7 +44,7 @@ function App() {
 
     if(!initialized.current)
     {
-    var socketInstance = io('http://localhost:4000', { transports : ['websocket'] });
+    var socketInstance = io('wss://tank-game-backend.fly.dev/', { transports : ['websocket'] });
     setSocket(socketInstance)
     initialized.current = true;
 
