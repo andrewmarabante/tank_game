@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 
 
-function Canvas({map, players, socket, projectiles, leader, game, winner, playerFences, currentPlayer}){
+function Canvas({map, players, socket, projectiles, leader, game, winner, playerFences, currentPlayer, music, masterVolume}){
 
     const canvasRef = useRef(null)
+    const imagesRef = useRef({})
+    const quarterAngleRef = useRef(null)
+
     const tileSize = 16;
     const [dead,setDead] = useState(false)
     const [waiting, setWaiting] = useState(false)
@@ -12,65 +15,45 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
     const [p3Blink, setP3Blink] = useState(0)
     const [p4Blink, setP4Blink] = useState(0)
 
-
-    const grass = new Image();
-    grass.src = '/static/grassMap/Grass.png'
-
-    const desert = new Image();
-    desert.src = '/static/grassMap/Tilled_Dirt.png'
-    
-    const fence = new Image();
-    fence.src = '/static/grassMap/Fences.png'
-    
-    const water = new Image();
-    water.src = '/static/grassMap/Water.png'
-
-    const tank = new Image();
-    tank.src = '/static/images/Tank.png'
-
-    const bullet = new Image();
-    bullet.src = '/static/images/Bullet.png'
-
-    const fire = new Image();
-    fire.src = '/static/images/Fire.png'
-
-    const big = new Image();
-    big.src = '/static/images/Purple.png'
-
-    const playerFence = new Image();
-    playerFence.src = '/static/images/Barricade.png'
-
-    const mine = new Image();
-    mine.src = '/static/images/Landmine.png'
-
-    const grenade = new Image();
-    grenade.src = '/static/images/Grenade.png'
-
-    const explosion = new Image();
-    explosion.src = '/static/images/Explosion.png'
-    
-    const redMeter = new Image();
-    redMeter.src = '/static/images/redMeter.png'
-
-    const blueMeter = new Image();
-    blueMeter.src = '/static/images/blueMeter.png'
-
-    const healthBar = new Image();
-    healthBar.src = '/static/images/Healthbar.png'
-
-    const heart = new Image();
-    heart.src = '/static/images/Heart.png'
-
-
-
-    
-
-
-    const quarterAngle = Math.PI/4;
-
   
     useEffect(() => {
 
+      if(!quarterAngleRef.current){
+        quarterAngleRef.current = Math.PI/4
+      }
+
+      if(Object.keys(imagesRef.current).length === 0){
+
+          const imageSources = {
+            grass: "/static/grassMap/Grass.png",
+            desert: "/static/grassMap/Tilled_Dirt.png",
+            fence: "/static/grassMap/Fences.png",
+            water: "/static/grassMap/Water.png",
+            tank: "/static/images/Tank.png",
+            bullet: "/static/images/Bullet.png",
+            fire: "/static/images/Fire.png",
+            big: "/static/images/Purple.png",
+            playerFence: "/static/images/Barricade.png",
+            mine: "/static/images/Landmine.png",
+            grenade: "/static/images/Grenade.png",
+            explosion: "/static/images/Explosion.png",
+            redMeter: "/static/images/redMeter.png",
+            blueMeter: "/static/images/blueMeter.png",
+            heart: "/static/images/Heart.png"
+        }
+
+          const loadedImages = {};
+          Object.keys(imageSources).forEach((key) => {
+              const img = new Image();
+              img.src = imageSources[key];
+              loadedImages[key] = img;
+          });
+      
+          imagesRef.current = loadedImages;
+      }
+
+
+      
       const canvas = canvasRef.current
       canvas.height = window.innerHeight
       canvas.width = window.innerWidth
@@ -119,19 +102,19 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
           const {id, gid} = map[row][col]
 
         if(gid < 78){
-          currentImage = grass
+          currentImage = imagesRef.current.grass
           tilesInRow = 11
         }
         else if(gid < 155){
-          currentImage = desert
+          currentImage = imagesRef.current.desert
           tilesInRow = 11
         }
         else if(gid < 171){
-          currentImage = fence
+          currentImage = imagesRef.current.fence
           tilesInRow = 4
         }
         else{
-          currentImage = water
+          currentImage = imagesRef.current.water
           tilesInRow = 4
         }
 
@@ -201,7 +184,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
             }
           
             ctx.drawImage(
-            redMeter,
+            imagesRef.current.redMeter,
             player.x -leftOffset -camX,
             player.y -topOffset -camY,
             5,
@@ -215,7 +198,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         ctx.translate(-player.x +leftOffset -2.5 +camX, -player.y +topOffset -16.5 +camY,)
 
           ctx.drawImage(
-            blueMeter,
+            imagesRef.current.blueMeter,
             player.x -leftOffset -camX,
             player.y -topOffset -camY,
             5,
@@ -311,7 +294,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       ctx.fillRect(player.x -leftOffset -camX, player.y +topOffset -camY, healthLeft, 8)
 
       ctx.drawImage(
-        heart,
+        imagesRef.current.heart,
         player.x -leftOffset -6 -camX,
         player.y +topOffset -2 -camY,
         heartSize,
@@ -323,25 +306,25 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
         ctx.translate(player.x -camX, player.y - camY)
 
         if(player.direction === 'upLeft'){
-        ctx.rotate(quarterAngle)
+        ctx.rotate(quarterAngleRef.current)
         }
         else if(player.direction === 'up'){
-          ctx.rotate(2*quarterAngle)
+          ctx.rotate(2*quarterAngleRef.current)
         }
         else if(player.direction === 'upRight'){
-          ctx.rotate(3*quarterAngle)
+          ctx.rotate(3*quarterAngleRef.current)
         }
         else if(player.direction === 'right'){
-          ctx.rotate(4*quarterAngle)
+          ctx.rotate(4*quarterAngleRef.current)
         }
         else if(player.direction === 'downRight'){
-          ctx.rotate(5*quarterAngle)
+          ctx.rotate(5*quarterAngleRef.current)
         }
         else if(player.direction === 'down'){
-          ctx.rotate(6*quarterAngle)
+          ctx.rotate(6*quarterAngleRef.current)
         }
         else if(player.direction === 'downLeft'){
-          ctx.rotate(7*quarterAngle)
+          ctx.rotate(7*quarterAngleRef.current)
         }
         else if(player.direction === 'left')
         {
@@ -353,7 +336,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
         //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
         ctx.drawImage(
-        tank,
+        imagesRef.current.tank,
         player.x -30 -camX,
         player.y -20 -camY,
         40,
@@ -365,7 +348,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
       if(player.dead){
         ctx.drawImage(
-          fire,
+          imagesRef.current.fire,
           player.x -10 -camX,
           player.y -20 -camY,
           30,
@@ -388,7 +371,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       ctx.rotate(fence.angle +Math.PI/2)
       ctx.translate(-fence.x +camX, -fence.y + camY)
       ctx.drawImage(
-        playerFence,
+        imagesRef.current.playerFence,
         fence.x - camX -50,
         fence.y - camY-10,
         100,
@@ -400,35 +383,35 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
     projectiles.map(projectile => {
       
-      let ammoImage = bullet;
+      let ammoImage = imagesRef.current.bullet;
       let w;
       let h;
       
 
       if(projectile.ammo === 'reg'){
-        ammoImage = bullet
+        ammoImage = imagesRef.current.bullet
         w = 10
         h = 10
       }
       else if(projectile.ammo === 'big'){
-        ammoImage = big
+        ammoImage = imagesRef.current.big
         w = 30
         h = 30
       }
       else if(projectile.ammo === 'mine'){
-        ammoImage = mine
+        ammoImage = imagesRef.current.mine
         w = 20
         h = 20
       }
       else if(projectile.ammo === 'grenade'){
-        ammoImage = grenade
+        ammoImage = imagesRef.current.grenade
         w = 15
         h = 30
       }
 
       if(projectile.ammo === 'mine' && projectile.exploded){
         ctx.drawImage(
-          explosion,
+          imagesRef.current.explosion,
           projectile.x - camX -40,
           projectile.y - camY-40,
           80,
@@ -446,7 +429,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
         ctx.translate(-projectile.x + camX, - projectile.y + camY)
         ctx.drawImage(
-          grenade,
+          imagesRef.current.grenade,
           projectile.x - camX -7.5,
           projectile.y - camY-15,
           15,
@@ -457,7 +440,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
         if(projectile.timer < 100){
           ctx.drawImage(
-            fire,
+            imagesRef.current.fire,
             projectile.x - camX -25,
             projectile.y - camY-25,
             50,
@@ -467,7 +450,7 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       }
       else if(projectile.ammo === 'grenade' && projectile.exploded){
         ctx.drawImage(
-          explosion,
+          imagesRef.current.explosion,
           projectile.x - camX -10,
           projectile.y - camY-10,
           20,
@@ -492,9 +475,18 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
 
     }, [players])
     
+    
     function handleStart(){
       socket.emit('game', 'start')
 }
+
+    function handleMusicVolumeChange(e){
+      music.volume = e.target.value/100
+    }
+
+    function handleMasterVolumeChange(e){
+      masterVolume.current = e.target.value/100
+    }
 
     return (
     <div className='relative'>
@@ -508,6 +500,10 @@ function Canvas({map, players, socket, projectiles, leader, game, winner, player
       </div>}
       {winner &&  <div className='absolute left-1/3 w-1/3 top-10 opacity-60 text-black bg-white shadow-2xl p-5 rounded-2xl font-mono text-center text-2xl sm:text-4xl'>Player {winner} Wins!!</div>}
       {!game && <div className='absolute w-1/3 left-1/3 top-2/3 text-red-500 font-mono text-center translate-y-1 text-2xl sm:text-6xl'>{players.length} /4</div>}
+      <div className='absolute top-5 z-30'>
+        <div className='z-30' ><input type="range" min={0} max={100} onChange={(e) => handleMusicVolumeChange(e)}/></div>
+        <div className='z-30' ><input type="range" min={0} max={100} onChange={(e) => handleMasterVolumeChange(e)}/></div>
+      </div>
       {game && <div className='absolute left-1/4 bottom-5 w-2/4 h-1/6 bg-black opacity-50 rounded-2xl flex justify-around items-center p-2 pt-4 pb-4'>
         <div className={`relative bg-white rounded-2xl border-solid h-5/6 w-1/6 flex flex-col justify-center items-center ${currentPlayer && currentPlayer.ammo === 'reg' ? 'border-5 mb-3' : 'opacity-40'}`}>
           <img src='/static/images/Bullet.png' className='w-4/6 select-none'  alt="Bullet" />

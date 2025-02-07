@@ -1,34 +1,34 @@
-import gameMusic from '/src/assets/gamemusic-6082.mp3'
-import bigHit from '/src/assets/bigHit.mp3'
-import { useEffect, useState, useRef } from 'react'
-import './App.css'
-import io from 'socket.io-client'
-import Canvas from './Canvas'
-import PlayerSounds from './PlayerSounds'
-import ProjectileSounds from './ProjectileSounds'
+import gameMusic from '/src/assets/gamemusic-6082.mp3';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import './App.css';
+import io from 'socket.io-client';
+import Canvas from './Canvas';
+import PlayerSounds from './PlayerSounds';
+import ProjectileSounds from './ProjectileSounds';
 
 function App() {
-  const [socket,setSocket] = useState(null)
-  const [map, setMap] = useState(null)
+  const socketRef = useRef(null);
+  const audioRef = useRef(new Audio());
+  const masterVolumeRef = useRef(.5)
   const canvasRef = useRef(null);
-  const initialized = useRef(false)
-  const [players, setPlayers] = useState([])
-  const [projectiles, setProjectiles] = useState([])
-  const [game, setGame] = useState(false)
+  const initialized = useRef(false);
+  const keys = useRef(new Map());
+
+  const [socket, setSocket] = useState(null);
+  const [map, setMap] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [projectiles, setProjectiles] = useState([]);
+  const [game, setGame] = useState(false);
   const [leader, setLeader] = useState(false);
   const [winner, setWinner] = useState(null);
-  const [full, setFull] = useState(false)
-  const [playerFences, setPlayerFences] = useState([])
-  const [currentPlayer, setCurrentPlayer]= useState(null)
+  const [full, setFull] = useState(false);
+  const [playerFences, setPlayerFences] = useState([]);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
   const [connected, setConnected] = useState(false);
-  const [sound, setSound] = useState(null)
-  const [cont, setCont] = useState(false)
-  const [explodedProjectiles, setExplodedProjectiles] = useState([[],[],[],[],[]])
+  const [cont, setCont] = useState(false);
+  const [explodedProjectiles, setExplodedProjectiles] = useState([[], [], [], [], []]);
 
-
-  const keys = new Map();
-
-  const inputs = {
+  const inputs = useMemo(() => ({
     up: false,
     down: false,
     right: false,
@@ -36,266 +36,172 @@ function App() {
     reg: false,
     big: false,
     fence: false,
-    mine: false,  
+    mine: false,
     grenade: false,
-  }
+  }), []);
 
-  useEffect(()=>{
-
-    if(!initialized.current)
-    {
-    var socketInstance = io('wss://tank-game-backend.fly.dev/', { transports : ['websocket'] });
-    setSocket(socketInstance)
-    initialized.current = true;
-
-    socketInstance.on('connect', () => {
-      setConnected(true)
-    });
-  }
-  
-
-  },[]);
+  const keyMap = useMemo(() => ({
+    w: 'up',
+    s: 'down',
+    d: 'right',
+    a: 'left',
+    1: 'reg',
+    2: 'big',
+    3: 'fence',
+    4: 'mine',
+    5: 'grenade',
+  }), []);
 
   useEffect(() => {
-    if (socket) {
-
-      socket.on('full', () => {
-        console.log('full')
-        socket.close();
-        setFull(true)
-      })
+    if (!socketRef.current) {
+      socketRef.current = io('http://localhost:8080/', { transports: ['websocket'] });
+      setSocket(socketRef.current);
       
+      socketRef.current.on('connect', () => setConnected(true));
+    }
+  }, []);
 
-      socket.on('map', function(map) {
-        setMap(map)
-      })
+  useEffect(() => {
+    if (!socket) return;
 
-      socket.on('players', function (serverPlayers) {
-       
-        const currentPlayer = serverPlayers.find(player => player.id === socket.id)
-          
-        if(currentPlayer.Num === 1){
-            setLeader(true)
-          }
-        setCurrentPlayer(currentPlayer)
-        setPlayers(serverPlayers)
-      });
+    const handleFull = () => {
+      console.log('full');
+      socket.close();
+      setFull(true);
+    };
 
-      socket.on('projectiles', (serverProjectiles) => {
-        setProjectiles(serverProjectiles)
-      })
-
-      socket.on('game', (gameState) => {
-        window.removeEventListener('keydown', handleKeyDown)
-        window.removeEventListener('keyup', handleKeyUp)
-        window.removeEventListener('mouseup', handleMouseUp)
-        window.removeEventListener('mousedown', handleMouseDown)
-        setWinner(null)
-        setGame(gameState)
-      })
-
-      socket.on('winner', winner => {
-        setWinner(winner)
-      })
-
-      socket.on('playerFences', playerFences => {
-        setPlayerFences(playerFences)
-      })
-
-      socket.on('explodedProjectiles', serverExplodedProjectiles => {
-        setExplodedProjectiles(serverExplodedProjectiles)
-      })
-
-      window.addEventListener('keydown', handleKeyDown)
-      window.addEventListener('keyup', handleKeyUp)
-      window.addEventListener('mouseup', handleMouseUp)
-      window.addEventListener('mousedown', handleMouseDown)
-
-    }}, [socket, game]);
-
-  function play(sound){
-
-   const audio = new Audio(sound)
-
-   if(sound === gameMusic){
-    audio.loop = true
-    audio.play()
-   }
-
-  }
-
-  function handleKeyDown(e){
-
-    if(!game){return}
-
-    if(e.key == 'w'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == 's'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == 'd'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == 'a'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == '1'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == '2'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == '3'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == '4'){
-      keys.set(e.key, true)
-    }
-    else if(e.key == '5'){
-      keys.set(e.key, true)
-    }
-
-    if(keys.get('w')){
-      inputs["up"] = true
-    }
-    if(keys.get("s")){
-      inputs["down"] = true
-    }
-    if(keys.get("d")){
-      inputs["right"] = true
-    }
-    if(keys.get("a")){
-      inputs["left"] = true
-    }
-    if(keys.get("1")){
-      inputs["reg"] = true
-    }
-    if(keys.get("2")){
-      inputs["big"] = true
-    }
-    if(keys.get("3")){
-      inputs["fence"] = true
-    }
-    if(keys.get("4")){
-      inputs["mine"] = true
-    }
-    if(keys.get("5")){
-      inputs["grenade"] = true
-    }
-
-    socket.emit('input', inputs)  
-
-  }
-
-
-  function handleKeyUp(e){
-
-    if(game === false){return}
-
-    if(e.key == 'w'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == 's'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == 'd'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == 'a'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == '1'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == '2'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == '3'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == '4'){
-      keys.set(e.key, false)
-    }
-    else if(e.key == '5'){
-      keys.set(e.key, false)
-    }
-
-    if(!keys.get('w')){
-      inputs["up"] = false
-    }
-    if(!keys.get("s")){
-      inputs["down"] = false
-    }
-    if(!keys.get("d")){
-      inputs["right"] = false
-    }
-    if(!keys.get("a")){
-      inputs["left"] = false
-    }
-    if(!keys.get("1")){
-      inputs["reg"] = false
-    }
-    if(!keys.get("2")){
-      inputs["big"] = false
-    }
-    if(!keys.get("3")){
-      inputs["fence"] = false
-    }
-    if(!keys.get("4")){
-      inputs["mine"] = false
-    }
-    if(!keys.get("5")){
-      inputs["grenade"] = false
-    }
+    const handleMap = (mapData) => setMap(mapData);
     
-    
-    socket.emit('input', inputs)
+    const handlePlayers = (serverPlayers) => {
+      const currentPlayer = serverPlayers.find(player => player.id === socket.id);
+      if (currentPlayer?.Num === 1) setLeader(true);
+      setCurrentPlayer(currentPlayer);
+      setPlayers(serverPlayers);
+    };
 
-  }
+    const handleProjectiles = (serverProjectiles) => {
+      setProjectiles(serverProjectiles)
+    };
 
-  function handleMouseDown(){
+    const handleGameState = (gameState) => {
+      setWinner(null);
+      setGame(gameState);
+    };
 
-    if(!game){return}
+    const handleWinner = (winner) => setWinner(winner);
 
-    play(bigHit)
-    socket.emit('grenadeHold', inputs)
-  }
+    const handlePlayerFences = (playerFencesData) => setPlayerFences(playerFencesData);
 
-  function handleMouseUp(e){
+    const handleExplodedProjectiles = (serverExplodedProjectiles) => {
+      setExplodedProjectiles(serverExplodedProjectiles)};
 
-    if(!game){return}
+    socket.on('full', handleFull);
+    socket.on('map', handleMap);
+    socket.on('players', handlePlayers);
+    socket.on('projectiles', handleProjectiles);
+    socket.on('game', handleGameState);
+    socket.on('winner', handleWinner);
+    socket.on('playerFences', handlePlayerFences);
+    socket.on('explodedProjectiles', handleExplodedProjectiles);
 
-    const angle = Math.atan2(
-      e.clientY - window.innerHeight/2,
-      e.clientX - window.innerWidth/2,
-    )
-    
-    socket.emit('fire', angle)
-  }
+    return () => {
+      socket.off('full', handleFull);
+      socket.off('map', handleMap);
+      socket.off('players', handlePlayers);
+      socket.off('projectiles', handleProjectiles);
+      socket.off('game', handleGameState);
+      socket.off('winner', handleWinner);
+      socket.off('playerFences', handlePlayerFences);
+      socket.off('explodedProjectiles', handleExplodedProjectiles);
+    };
+  }, [socket]);
 
-  function startGame(){
+  const play = useCallback((sound) => {
+
+    if (!audioRef.current) return;
+    audioRef.current.src = sound;
+    audioRef.current.loop = sound === gameMusic;
+    audioRef.current.volume = 0;
+    audioRef.current.play();
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    if (!game || !keyMap[e.key]) return;
+    keys.current.set(e.key, true);
+    inputs[keyMap[e.key]] = true;
+    socket.emit('input', inputs);
+  }, [game, inputs]);
+
+  const handleKeyUp = useCallback((e) => {
+    if (!game || !keyMap[e.key]) return;
+    keys.current.set(e.key, false);
+    inputs[keyMap[e.key]] = false;
+    socket.emit('input', inputs);
+  }, [game, inputs]);
+
+  const handleMouseDown = useCallback(() => {
+    if (!game) return;
+    socket.emit('grenadeHold', inputs);
+  }, [game, inputs]);
+
+  const handleMouseUp = useCallback((e) => {
+    if (!game) return;
+    const angle = Math.atan2(e.clientY - window.innerHeight / 2, e.clientX - window.innerWidth / 2);
+    socket.emit('fire', angle);
+  }, [game]);
+
+  useEffect(() => {
+    if (!game) return;
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [game, handleKeyDown, handleKeyUp, handleMouseDown, handleMouseUp]);
+
+  const startGame = useCallback(() => {
     setCont(true);
-    play(gameMusic)
-  }
+    play(gameMusic);
+  }, [play]);
 
   return (
     <div>
-      {full && <div>Server is full, try again later</div>}
-      {map && connected && cont && <Canvas map = {map} players = {players} projectiles = {projectiles} 
-      socket = {socket} leader = {leader} game={game} winner={winner}
-      playerFences = {playerFences} currentPlayer = {currentPlayer}
-      />}
-      {!connected && !full && <div>
-        Attempting to connect
-        </div>}
-      {connected && !cont && <div>
-        <button onClick={startGame}>Continue to game</button>
-        </div>}
-        <PlayerSounds players = {players} currentPlayer={currentPlayer}/>
-        <ProjectileSounds projectiles={projectiles} currentPlayer={currentPlayer} explodedProjectiles = {explodedProjectiles}/>
+      {full ? (
+        <div>Server is full, try again later</div>
+      ) : !connected ? (
+        <div>Attempting to connect</div>
+      ) : !cont ? (
+        <div><button onClick={startGame}>Continue to game</button></div>
+      ) : (
+        <>
+          {map && (
+            <Canvas 
+              map={map} 
+              players={players} 
+              projectiles={projectiles} 
+              socket={socket} 
+              leader={leader} 
+              game={game} 
+              winner={winner}
+              playerFences={playerFences} 
+              currentPlayer={currentPlayer} 
+              music = {audioRef.current}
+              masterVolume = {masterVolumeRef}
+            />
+          )}
+          <PlayerSounds players={players} currentPlayer={currentPlayer} masterVolume = {masterVolumeRef.current} />
+          <ProjectileSounds projectiles={projectiles} currentPlayer={currentPlayer} explodedProjectiles={explodedProjectiles} playerFences={playerFences} masterVolume = {masterVolumeRef.current} />
+        </>
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

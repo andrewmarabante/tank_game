@@ -27,9 +27,9 @@ server.listen(8080, ()=>{
 
 var io = socket(server);
 
-const TICK_RATE = 30;
+const TICK_RATE = 50;
 const SPEED = 5;
-const REG_SPEED = 7;
+const REG_SPEED = 9;
 const BIG_SPEED = 10;
 const GRENADE_SPEED = 7;
 
@@ -65,267 +65,206 @@ let playerFences = [];
 let explodedMines = []
 
 //4 arrays for reg, big, mine, and grenade
-let explodedProjectiles = [[],[],[],[], []]
+let explodedProjectiles = [[],[],[],[],[]]
 
 let grenadeIntervals = {};
 let inputsMap = {}
 
-function gameOver(winner){
+function gameOver(winner) {
+  const startPositions = {
+    1: { x: p1Start.x, y: p1Start.y, direction: 'up' },
+    2: { x: p2Start.x, y: p2Start.y, direction: 'down' },
+    3: { x: p3Start.x, y: p3Start.y, direction: 'down' },
+    4: { x: p4Start.x, y: p4Start.y, direction: 'up' }
+  };
 
-  players.map(player => {
-    
-    if(player.Num === 1){
-      player.x = p1Start.x
-      player.y = p1Start.y
-      player.direction = 'up'
-    }
-    else if(player.Num === 2){
-      player.x = p2Start.x
-      player.y = p2Start.y
-      player.direction = 'down'
-    }
-    else if(player.Num === 3){
-      player.x = p3Start.x
-      player.y = p3Start.y
-      player.direction = 'down'
-    }
-    else if(player.Num === 4){
-      player.x = p4Start.x
-      player.y = p4Start.y
-      player.direction = 'up'
-    }
-    
-    player.dead = false
-    player.waiting = false
-    player.health = 100
-    player.fenceAmmo = 7
-    player.moving = false
+  players.forEach(player => {
+    const { x, y, direction } = startPositions[player.Num] || {};
 
-    inputsMap[player.id] = {
-      up: false,
-      down: false,
-      right: false,
-      left: false,
+    if (x !== undefined && y !== undefined && direction) {
+      player.x = x;
+      player.y = y;
+      player.direction = direction;
     }
-  })
-  gameState = false
+
+    player.dead = false;
+    player.waiting = false;
+    player.health = 100;
+    player.fenceAmmo = 7;
+    player.moving = false;
+
+    inputsMap[player.id] = { up: false, down: false, right: false, left: false };
+  });
+
+  gameState = false;
   playerFences = [];
   explodedMines = [];
   projectiles = [];
+  explodedProjectiles = [[],[],[],[], []]
 
-  io.emit('game', false)
-  io.emit('winner', winner.Num)
-  io.emit('playerFences', playerFences)
+  io.emit('game', false);
+  io.emit('winner', winner.Num);
+  io.emit('playerFences', playerFences);
 }
+
 
 function circleRectCollide(circle, rectangle) {
-
   // Calculate the angle cosine and sine
-  let cosAngle = Math.cos(rectangle.angle);
-  let sinAngle = Math.sin(rectangle.angle);
+  const cosAngle = Math.cos(rectangle.angle);
+  const sinAngle = Math.sin(rectangle.angle);
 
   // Transform circle center to rectangle space
-  let dx = circle.x - rectangle.x;
-  let dy = circle.y - rectangle.y;
-  let circleX = dx * cosAngle + dy * sinAngle;
-  let circleY = dy * cosAngle - dx * sinAngle;
+  const dx = circle.x - rectangle.x;
+  const dy = circle.y - rectangle.y;
+  const circleX = dx * cosAngle + dy * sinAngle;
+  const circleY = dy * cosAngle - dx * sinAngle;
 
   // Find the closest point on the rectangle to the circle
-  let closestX, closestY;
-  if (circleX < -rectangle.width / 2) {
-      closestX = -rectangle.width / 2;
-  } else if (circleX > rectangle.width / 2) {
-      closestX = rectangle.width / 2;
-  } else {
-      closestX = circleX;
-  }
-  if (circleY < -rectangle.height / 2) {
-      closestY = -rectangle.height / 2;
-  } else if (circleY > rectangle.height / 2) {
-      closestY = rectangle.height / 2;
-  } else {
-      closestY = circleY;
-  }
+  const closestX = Math.max(-rectangle.width / 2, Math.min(circleX, rectangle.width / 2));
+  const closestY = Math.max(-rectangle.height / 2, Math.min(circleY, rectangle.height / 2));
 
   // Calculate distance between circle center and closest point on rectangle
-  let distanceX = circleX - closestX;
-  let distanceY = circleY - closestY;
-  let distanceSquared = distanceX * distanceX + distanceY * distanceY;
+  const distanceSquared = (circleX - closestX) ** 2 + (circleY - closestY) ** 2;
 
   // Check if the distance is less than or equal to the circle's radius squared
-  return distanceSquared <= (circle.radius * circle.radius);
+  return distanceSquared <= circle.radius ** 2;
 }
 
 
-function isColliding(object, terrain, isProjectile){
-  //player collision
-  if(!isProjectile){
-    for(let structures = 0 ; structures < terrain.length; structures++){
-      for(let i = 0; i < terrain[structures].length; i++){
-        if(
-          //checks if two rectangles are colliding
-          object.x < terrain[structures][i].x + terrain[structures][i].w &&
-          object.x + object.w > terrain[structures][i].x &&
-          object.y < terrain[structures][i].y + terrain[structures][i].h &&
-          object.y + object.h > terrain[structures][i].y
-    ){
-      return true
-    }}
-    }
+function isColliding(object, terrain, isProjectile) {
+  const checkRectangleCollision = (obj, rect) => {
+    return obj.x < rect.x + rect.w && obj.x + obj.w > rect.x &&
+           obj.y < rect.y + rect.h && obj.y + obj.h > rect.y;
+  };
 
-    for(let i = 0 ; i < playerFences.length; i++){
-      if(circleRectCollide(object, playerFences[i])){
-        return true
-      }}
+  const checkCircleRectCollision = (obj, radius, rect) => {
+    let distX = Math.abs(obj.x - (rect.x + rect.w / 2));
+    let distY = Math.abs(obj.y - (rect.y + rect.h / 2));
+    return distX < (rect.w / 2 + radius) && distY < (rect.h / 2 + radius);
+  };
 
-    for(let i = 0; i < explodedMines.length; i++){
-
-      if(
-        object.x < explodedMines[i].x + explodedMines[i].w &&
-        object.x + object.w > explodedMines[i].x &&
-        object.y < explodedMines[i].y + explodedMines[i].h &&
-        object.y + object.h > explodedMines[i].y
-      ){
-        return true
+  if (!isProjectile) {
+    // Check for collisions with terrain
+    for (let structures of terrain) {
+      for (let rect of structures) {
+        if (checkRectangleCollision(object, rect)) {
+          return true;
+        }
       }
     }
-      
-    return false
-  }
-  //projectile collision
-  else if(object.ammo === 'reg' && isProjectile){
 
-    let radius = 5;
-
-    //checks if circle and rectangle are colliding
-    for(let i = 0; i < terrain[0].length; i++){
-
-      var distX = Math.abs(object.x - terrain[0][i].x+terrain[0][i].w/2);
-      var distY = Math.abs(object.y - terrain[0][i].y+terrain[0][i].h/2);
-
-      if( (distX < (terrain[0][i].w/2 + radius)) && (distY < (terrain[0][i].h/2 + radius)) ){
-       
-        if (distX <= (terrain[0][i].w/2)) {
-          explodedProjectiles[0].push({
-            id: generateRandomId(),
-            playerId: object.id,
-            x: object.x,
-            y: object.y,
-            ammo: object.ammo,
-            hit: 'fence'
-          })
-          return true; } 
-        if (distY <= (terrain[0][i].h/2)) {
-          explodedProjectiles[0].push({
-            id: generateRandomId(),
-            playerId: object.id,
-            x: object.x,
-            y: object.y,
-            ammo: object.ammo,
-            hit: 'fence'
-          })
-          return true; }
+    // Check for collisions with player fences
+    for (let fence of playerFences) {
+      if (circleRectCollide(object, fence)) {
+        return true;
       }
-  }
+    }
 
-  for(let i=0; i<playerFences.length; i++){
-    if(circleRectCollide(object, playerFences[i])){
-      explodedProjectiles[0].push({
-        id: generateRandomId(),
-        playerId: object.id,
-        x: object.x,
-        y: object.y,
-        ammo: object.ammo,
-        hit: 'fence'
-      })
-      return true
-  }}
-
-   return false
-  }
-  else if(object.ammo === 'big' && isProjectile){
-
-    let radius = 15;
-
-    for(let i = 0; i < terrain[0].length; i++){
-
-      var distX = Math.abs(object.x - terrain[0][i].x+terrain[0][i].w/2);
-      var distY = Math.abs(object.y - terrain[0][i].y+terrain[0][i].h/2);
-
-      if( (distX < (terrain[0][i].w/2 + radius)) && (distY < (terrain[0][i].h/2 + radius)) ){
-       
-        if (distX <= (terrain[0][i].w/2)) { return true; } 
-        if (distY <= (terrain[0][i].h/2)) { return true; }
+    // Check for collisions with exploded mines
+    for (let mine of explodedMines) {
+      if (checkRectangleCollision(object, mine)) {
+        return true;
       }
+    }
+
+    return false;
+  } else if (object.ammo === 'reg' || object.ammo === 'big') {
+
+    const radius = object.ammo === 'reg' ? 5 : 15;
+
+    // Check for collisions with terrain
+    for (let rect of terrain[0]) {
+      if(checkCircleRectCollision(object, radius, rect)){
+        object.ammo === 'reg' && explodedProjectiles[0].push({
+          id: generateRandomId(),
+          playerId: object.id,
+          x: object.x,
+          y: object.y,
+          ammo: object.ammo,
+          hit: 'fence'
+        });
+        return true;
+      }
+    }
+
+    // Check for collisions with player fences
+    for (let fence of playerFences) {
+      if (circleRectCollide(object, fence)) {
+        object.ammo === 'reg' && explodedProjectiles[0].push({
+          id: generateRandomId(),
+          playerId: object.id,
+          x: object.x,
+          y: object.y,
+          ammo: object.ammo,
+          hit: 'fence'
+        });
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  for(let i=0; i<playerFences.length; i++){
-    if(circleRectCollide(object, playerFences[i])){
-    return true
-  }}
-   return false
-    
-  }
+  return false;
 }
+
 
 function tick(){
     players.map((player)=> {
 
-      //reg
+      //reg regen
 
       if(player.regAmmo < 10){
         player.regRate +=1;
+        if(player.regRate%15 === 0){
+          player.regAmmo ++;
+        }
+  
+        if(player.regAmmo === 10){
+          player.regRate = 1
+        }
       }
 
-      if(player.regRate%15 === 0){
-        player.regAmmo ++;
-      }
-
-      if(player.regAmmo === 10){
-        player.regRate = 1
-      }
-
-      //big
+      //big regen
 
       if(player.bigAmmo < 10){
         player.bigRate +=1;
+        if(player.bigRate%75 === 0 && player.bigAmmo !== 1){
+          player.bigAmmo ++;
+        }
+  
+        if(player.bigAmmo === 1){
+          player.bigRate = 1
+        }
       }
 
-      if(player.bigRate%75 === 0 && player.bigAmmo !== 1){
-        player.bigAmmo ++;
-      }
-
-      if(player.bigAmmo === 1){
-        player.bigRate = 1
-      }
-
-      //mine
+      //mine regen
 
       if(player.mineAmmo < 10){
         player.mineRate +=1;
+        if(player.mineRate%200 === 0 && player.mineAmmo !== 1){
+          player.mineAmmo ++;
+        }
+  
+        if(player.mineAmmo === 1){
+          player.mineRate = 1
+        }
       }
 
-      if(player.mineRate%200 === 0 && player.mineAmmo !== 1){
-        player.mineAmmo ++;
-      }
 
-      if(player.mineAmmo === 1){
-        player.mineRate = 1
-      }
-
-      //grenade
+      //grenade regen
 
       if(player.grenadeAmmo < 10){
         player.grenadeRate +=1;
+        if(player.grenadeRate%75 === 0 && player.grenadeAmmo !== 1){
+          player.grenadeAmmo ++;
+        }
+  
+        if(player.grenadeAmmo === 1){
+          player.grenadeRate = 1
+        }
       }
 
-      if(player.grenadeRate%75 === 0 && player.grenadeAmmo !== 1){
-        player.grenadeAmmo ++;
-      }
-
-      if(player.grenadeAmmo === 1){
-        player.grenadeRate = 1
-      }
 
       
       
@@ -457,7 +396,7 @@ function tick(){
           speed = 0;
           projectile.exploded = true
           explodedProjectiles[4].push({
-            id: generateRandomId(),
+            id: projectile.uniqueId,
             x: projectile.x,
             y: projectile.y,
           })
@@ -470,7 +409,6 @@ function tick(){
         projectile.timer -= 20;
         }
         speed = 0
-
       }
 
       projectile.x += Math.cos(projectile.angle) * speed
@@ -504,7 +442,7 @@ function tick(){
               hit: 'player'
             })
 
-            player.health -= 5
+            player.health -= 7
           }
           else if(projectile.ammo === 'big'){
 
@@ -551,7 +489,7 @@ function tick(){
 
         if(distance <= 50 && projectile.ammo === 'mine' && projectile.timer <= 0 && !projectile.exploded){
           
-          player.health -= 60
+          player.health -= 35
 
           if(player.health <= 0){
             player.dead = true
@@ -560,7 +498,7 @@ function tick(){
           projectile.exploded = true;
 
           explodedProjectiles[3].push({
-            id: generateRandomId(),
+            id: projectile.uniqueId,
 
             x: projectile.x,
             y: projectile.y,
@@ -623,10 +561,18 @@ function tick(){
               projectile.exploded = true
 
               explodedProjectiles[3].push({
-                id: generateRandomId(),
+                id: projectile.uniqueId,
                 x: projectile.x,
                 y: projectile.y,
               })
+
+              explodedMines.push({
+                x: projectile.x -10,
+                y: projectile.y -10,
+                w: 65,
+                h: 65,
+              })
+              
             }
           }
         })
@@ -654,341 +600,231 @@ function tick(){
 }
 
 
-async function main(){
-
-  const map2D = await loadMap()
+async function main() {
+  const map2D = await loadMap();
   let fences = [];
   let water = [];
 
-  for(let row = 0; row < map2D.length; row++){
-    for(let col = 0; col < map2D[row].length; col++){
-      if(map2D[row][col].gid >= 171){
-        const terrain = {
-          index: row*100 + col,
-          id: map2D[row][col].id,
-          gid: map2D[row][col].gid,
-          x: col*TILE_SIZE +TILE_SIZE,
-          y: row*TILE_SIZE +TILE_SIZE,
-          w: TILE_SIZE,
-          h: TILE_SIZE
-        }
-        water.push(terrain)
-      }else if(map2D[row][col].gid >= 155){
-        const terrain = {
-          index: row*100 + col,
-          id: map2D[row][col].id,
-          gid: map2D[row][col].gid,
-          x: col*TILE_SIZE +TILE_SIZE,
-          y: row*TILE_SIZE +TILE_SIZE,
-          w: TILE_SIZE,
-          h: TILE_SIZE
-        }
-        fences.push(terrain)
+  // Initialize terrain (fences and water)
+  for (let row = 0; row < map2D.length; row++) {
+    for (let col = 0; col < map2D[row].length; col++) {
+      const tile = map2D[row][col];
+      const terrain = {
+        index: row * 100 + col,
+        id: tile.id,
+        gid: tile.gid,
+        x: col * TILE_SIZE + TILE_SIZE,
+        y: row * TILE_SIZE + TILE_SIZE,
+        w: TILE_SIZE,
+        h: TILE_SIZE
+      };
+
+      if (tile.gid >= 171) {
+        water.push(terrain);
+      } else if (tile.gid >= 155) {
+        fences.push(terrain);
       }
     }
   }
-  
-  terrain.push(fences)
-  terrain.push(water)
 
+  terrain.push(fences);
+  terrain.push(water);
 
   io.on('connection', (socket) => {
-
-    if( players.length === 0){
-      players.push({
-      id: socket.id,
-      x: p1Start.x,
-      y: p1Start.y,
-      w: 40,
-      h: 40,
-      radius: 20,
-      direction: 'up',
-      Num: 1,
-      dead: false,
-      ammo: 'reg',
-      grenadeTimer: 0,
-      health: 100,
-      regAmmo: 10,
-      regRate: 1,
-      bigAmmo: 1,
-      bigRate: 1,
-      mineAmmo: 1,
-      mineRate: 1,
-      grenadeAmmo: 1,
-      grenadeRate: 1,
-      fenceAmmo: 7,
-      moving: false,
-    })}
-    else if( players.length === 1){players.push({
-      id: socket.id,
-      x: p2Start.x,
-      y: p2Start.y,
-      w: 40,
-      h: 40,
-      radius: 20,
-      direction: 'down',
-      Num: 2,
-      dead: false,
-      ammo: 'reg',
-      grenadeTimer: 0,
-      health: 100,
-      regAmmo: 10,
-      regRate: 1,
-      bigAmmo: 1,
-      bigRate: 1,
-      mineAmmo: 1,
-      mineRate: 1,
-      grenadeAmmo: 1,
-      grenadeRate: 1,
-      fenceAmmo: 7,
-      moving: false,
-    })}
-    else if( players.length === 2){players.push({
-      id: socket.id,
-      x: p3Start.x,
-      y: p3Start.y,
-      w: 40,
-      h: 40,
-      radius: 20,
-      direction: 'down',
-      Num: 3,
-      dead: false,
-      regAmmo: 10,
-      ammo: 'reg',
-      grenadeTimer: 0,
-      health: 100,
-      regRate: 1,
-      bigAmmo: 1,
-      bigRate: 1,
-      mineAmmo: 1,
-      mineRate: 1,
-      grenadeAmmo: 1,
-      grenadeRate: 1,
-      fenceAmmo: 7,
-      moving: false,
-    })}
-    else if( players.length === 3){players.push({
-      id: socket.id,
-      x: p4Start.x,
-      y: p4Start.x,
-      w: 40,
-      h: 40,
-      radius: 20,
-      direction: 'up',
-      Num: 4,
-      dead: false,
-      ammo: 'reg',
-      grenadeTimer: 0,
-      health: 100,
-      regAmmo: 10,
-      regRate: 1,
-      bigAmmo: 1,
-      bigRate: 1,
-      mineAmmo: 1,
-      mineRate: 1,
-      grenadeAmmo: 1,
-      grenadeRate: 1,
-      fenceAmmo: 7,
-      moving: false,
-    })}
-    else{
-      socket.emit('full')
-      return
+    // Add player to players array
+    let newPlayer;
+    if (players.length < 4) {
+      newPlayer = {
+        id: socket.id,
+        x: [p1Start, p2Start, p3Start, p4Start][players.length].x,
+        y: [p1Start, p2Start, p3Start, p4Start][players.length].y,
+        w: 40,
+        h: 40,
+        radius: 20,
+        direction: players.length < 2 ? 'up' : 'down',
+        Num: players.length + 1,
+        dead: false,
+        ammo: 'reg',
+        grenadeTimer: 0,
+        health: 100,
+        regAmmo: 10,
+        regRate: 1,
+        bigAmmo: 1,
+        bigRate: 1,
+        mineAmmo: 1,
+        mineRate: 1,
+        grenadeAmmo: 1,
+        grenadeRate: 1,
+        fenceAmmo: 7,
+        moving: false,
+      };
+      players.push(newPlayer);
+    } else {
+      socket.emit('full');
+      return;
     }
 
-    if(gameState === true){
+    if (gameState === true) {
       players.map(player => {
-        if(player.id === socket.id){
+        if (player.id === socket.id) {
           player.ghostX = 800;
           player.ghostY = 800;
           player.dead = true;
           player.waiting = true;
         }
-      })
+      });
     }
 
-    console.log('Made Socket Connection: ' +socket.id)
+    console.log('Made Socket Connection: ' + socket.id);
 
+    inputsMap[socket.id] = { up: false, down: false, right: false, left: false };
+    socket.emit('map', map2D);
+    socket.emit('game', gameState);
 
-    inputsMap[socket.id] = {
-      up: false,
-      down: false,
-      right: false,
-      left: false
-    };
-
-    socket.emit('map', map2D)
-    socket.emit('game', gameState)
-
+    // Game Start
     socket.on('game', action => {
-      if(action === 'start'){
+      if (action === 'start') {
         gameState = true;
-        io.emit('game', gameState)
+        io.emit('game', gameState);
       }
-    })
-  
+    });
+
+    // Player Movement
     socket.on('input', (inputs) => {
-      const player = players.find((player) => player.id === socket.id)
-
-      if(inputs.up || inputs.down || inputs.right || inputs.left){
-        player.moving = true
-      }else{
-        player.moving = false
+      const player = players.find((player) => player.id === socket.id);
+      if (inputs.up || inputs.down || inputs.right || inputs.left) {
+        player.moving = true;
+      } else {
+        player.moving = false;
       }
-
       inputsMap[player.id] = inputs;
-    })
+    });
 
+    // Grenade Hold
     socket.on('grenadeHold', inputs => {
-
-      const player = players.find((player) => player.id === socket.id)
-
-      if(player.ammo === 'grenade' && player.grenadeAmmo === 1){
-        grenadeIntervals[player.id] = setInterval(() =>{
-          player.grenadeTimer += 40
-        }, 33.33)
+      const player = players.find((player) => player.id === socket.id);
+      if (player.ammo === 'grenade' && player.grenadeAmmo === 1) {
+        grenadeIntervals[player.id] = setInterval(() => {
+          player.grenadeTimer += 40;
+        }, 33.33);
       }
+    });
 
-
-    })
-
+    // Fire Event
     socket.on('fire', (angle) => {
-
-      const player = players.find((player) => player.id === socket.id)
-
-      if(player.dead){return}
+      const player = players.find((player) => player.id === socket.id);
+      if (player.dead) { return; }
 
       let radius;
       let grenadeTimer = 2000 - player.grenadeTimer;
 
-      if(grenadeTimer < 10){
-        grenadeTimer = 10
-      }
+      if (grenadeTimer < 10) { grenadeTimer = 10; }
 
-      if(player.ammo === 'reg'){
-        if(player.regAmmo <= 0){
-          return
-        }
-        radius = 5
+      // Handle Ammo and Create Projectiles
+      if (player.ammo === 'reg' && player.regAmmo > 0) {
         player.regAmmo--;
-      }
-      else if(player.ammo === 'big'){
-        if(player.bigAmmo <= 0){
-          return
-        }
-        radius = 15
-        player.bigAmmo--
-      }
-      else if(player.ammo === 'mine'){
-        if(player.mineAmmo <= 0){
-          return
-        }
-        player.mineAmmo--
-      }
-      else if(player.ammo === 'grenade'){
-        if(player.grenadeAmmo <= 0){
-          return
-        }
-        player.grenadeAmmo--
-      }
-
-
-      if(player.ammo === 'fence'){
-
-        if(player.fenceAmmo === 0){
-          return
-        }
-
-        const fenceX = player.x + Math.cos(angle)*60
-        const fenceY = player.y + Math.sin(angle)*60
-        
-
-        playerFences.push({
-          uniqueId: generateRandomId(),
-          id: socket.id,
-          angle : angle,
-          x: fenceX,
-          y: fenceY,
-          height: 100,
-          width: 20,
-        })
-
-        explodedProjectiles[2].push({
-          id: generateRandomId(),
-          playerId: player.id,
-          x: fenceX,
-          y: fenceY,
-        })
-
-        player.fenceAmmo --;
-      }
-      else if(player.ammo === 'mine'){
         projectiles.push({
           uniqueId: generateRandomId(),
           id: socket.id,
-          angle : angle,
+          angle: angle,
           x: player.x,
           y: player.y,
           ammo: player.ammo,
           collide: false,
-          radius: 10,
-          timer: 1000,
-          exploded: false,
-        })
-      }
-      else if(player.ammo === 'grenade'){
+          radius: 5,
+        });
+      } else if (player.ammo === 'big' && player.bigAmmo > 0) {
+        player.bigAmmo--;
         projectiles.push({
           uniqueId: generateRandomId(),
-          id: socket.id,  
-          angle : angle,
+          id: socket.id,
+          angle: angle,
+          x: player.x,
+          y: player.y,
+          ammo: player.ammo,
+          collide: false,
+          radius: 15,
+        });
+      } else if (player.ammo === 'mine' && player.mineAmmo > 0) {
+        player.mineAmmo--;
+        projectiles.push({
+          uniqueId: generateRandomId(),
+          id: socket.id,
+          angle: angle,
+          x: player.x,
+          y: player.y,
+          ammo: player.ammo,
+          collide: false,
+          timer: 1000,
+          radius: 10,
+        });
+      } else if (player.ammo === 'grenade' && player.grenadeAmmo > 0) {
+        player.grenadeAmmo--;
+        radius = 10;
+        projectiles.push({
+          uniqueId: generateRandomId(),
+          id: socket.id,
+          angle: angle,
           spin: angle,
           x: player.x,
           y: player.y,
           ammo: player.ammo,
           collide: false,
-          radius: 10,
+          radius: radius,
           timer: grenadeTimer,
           exploded: false,
-        })
-        clearInterval(grenadeIntervals[player.id])
-        player.grenadeTimer = 0
-      }
-      else {
-        projectiles.push({
-        uniqueId: generateRandomId(),
-        id: socket.id,
-        angle : angle,
-        x: player.x,
-        y: player.y,
-        ammo: player.ammo,
-        collide: false,
-        radius: radius,
-      })}
-      
-    })
+        });
+        clearInterval(grenadeIntervals[player.id]);
+        player.grenadeTimer = 0;
+        return;
+      } else if (player.ammo === 'fence' && player.fenceAmmo > 0) {
+        const fenceX = player.x + Math.cos(angle) * 60;
+        const fenceY = player.y + Math.sin(angle) * 60;
 
+        playerFences.push({
+          uniqueId: generateRandomId(),
+          id: socket.id,
+          angle: angle,
+          x: fenceX,
+          y: fenceY,
+          height: 100,
+          width: 20,
+        });
+
+        explodedProjectiles[2].push({
+          id: generateRandomId(),
+          playerId: player.id,
+          ammo: 'fence',
+          x: fenceX,
+          y: fenceY,
+        });
+
+        player.fenceAmmo--;
+      } else {
+        return;
+      }
+    });
+
+    // Disconnect Event
     socket.on('disconnect', () => {
-
-      const leaver = players.find(player => player.id === socket.id)
-
-      players = players.filter((player) => { return player.id !== socket.id})
-
+      const leaver = players.find(player => player.id === socket.id);
+      players = players.filter((player) => player.id !== socket.id);
       players.map(player => {
-        if(player.Num > leaver.Num){
-          player.Num = player.Num-1
+        if (player.Num > leaver.Num) {
+          player.Num = player.Num - 1;
         }
-      })
-
-      livingPlayers = players.filter(player => player.dead === false)
-      if(livingPlayers.length === 1){
-        gameOver(livingPlayers[0])
+      });
+      livingPlayers = players.filter(player => !player.dead);
+      if (livingPlayers.length === 1) {
+        gameOver(livingPlayers[0]);
       }
-    })
-  })
+    });
+  });
 
-  setInterval(tick, 1000 / TICK_RATE)
-
+  // Game Tick
+  setInterval(tick, 1000 / TICK_RATE);
 }
+
 
 main();
 
