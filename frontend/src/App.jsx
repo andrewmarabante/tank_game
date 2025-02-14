@@ -80,6 +80,7 @@ function App() {
     };
 
     const handleProjectiles = (serverProjectiles) => {
+      console.log('projectile')
       setProjectiles(serverProjectiles)
     };
 

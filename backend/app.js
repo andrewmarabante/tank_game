@@ -77,8 +77,9 @@ function gameOver(winner) {
     3: { x: p3Start.x, y: p3Start.y, direction: 'down' },
     4: { x: p4Start.x, y: p4Start.y, direction: 'up' }
   };
-
+  
   players.forEach(player => {
+
     const { x, y, direction } = startPositions[player.Num] || {};
 
     if (x !== undefined && y !== undefined && direction) {
@@ -109,107 +110,80 @@ function gameOver(winner) {
 
 
 function circleRectCollide(circle, rectangle) {
-  // Calculate the angle cosine and sine
-  const cosAngle = Math.cos(rectangle.angle);
-  const sinAngle = Math.sin(rectangle.angle);
+  // Precompute trigonometric values
+  const cosA = Math.cos(rectangle.angle);
+  const sinA = Math.sin(rectangle.angle);
 
   // Transform circle center to rectangle space
   const dx = circle.x - rectangle.x;
   const dy = circle.y - rectangle.y;
-  const circleX = dx * cosAngle + dy * sinAngle;
-  const circleY = dy * cosAngle - dx * sinAngle;
+  const circleX = dx * cosA + dy * sinA;
+  const circleY = dy * cosA - dx * sinA;
 
-  // Find the closest point on the rectangle to the circle
-  const closestX = Math.max(-rectangle.width / 2, Math.min(circleX, rectangle.width / 2));
-  const closestY = Math.max(-rectangle.height / 2, Math.min(circleY, rectangle.height / 2));
+  // Precompute rectangle bounds
+  const halfW = rectangle.width * 0.5;
+  const halfH = rectangle.height * 0.5;
 
-  // Calculate distance between circle center and closest point on rectangle
-  const distanceSquared = (circleX - closestX) ** 2 + (circleY - closestY) ** 2;
+  // Clamp circle position to rectangle bounds
+  const closestX = Math.max(-halfW, Math.min(circleX, halfW));
+  const closestY = Math.max(-halfH, Math.min(circleY, halfH));
 
-  // Check if the distance is less than or equal to the circle's radius squared
-  return distanceSquared <= circle.radius ** 2;
+  // Compute squared distance to avoid expensive `Math.sqrt`
+  const dx2 = circleX - closestX;
+  const dy2 = circleY - closestY;
+  return dx2 * dx2 + dy2 * dy2 <= circle.radius * circle.radius;
 }
 
 
+
 function isColliding(object, terrain, isProjectile) {
-  const checkRectangleCollision = (obj, rect) => {
-    return obj.x < rect.x + rect.w && obj.x + obj.w > rect.x &&
-           obj.y < rect.y + rect.h && obj.y + obj.h > rect.y;
-  };
+  const isRegularAmmo = object.ammo === 'reg';
+  const isBigAmmo = object.ammo === 'big';
+
+  const checkRectangleCollision = (obj, rect) => 
+    obj.x < rect.x + rect.w*2 && obj.x + obj.w > rect.x +rect.w &&
+    obj.y < rect.y + rect.h*2 && obj.y + obj.h > rect.y +rect.h;
 
   const checkCircleRectCollision = (obj, radius, rect) => {
-    let distX = Math.abs(obj.x - (rect.x + rect.w / 2));
-    let distY = Math.abs(obj.y - (rect.y + rect.h / 2));
+    const distX = Math.abs(obj.x - (rect.x + rect.w / 2));
+    const distY = Math.abs(obj.y - (rect.y + rect.h / 2));
     return distX < (rect.w / 2 + radius) && distY < (rect.h / 2 + radius);
   };
 
   if (!isProjectile) {
-    // Check for collisions with terrain
-    for (let structures of terrain) {
-      for (let rect of structures) {
-        if (checkRectangleCollision(object, rect)) {
-          return true;
-        }
-      }
+    return terrain.some(structures => 
+      structures.some(rect => checkRectangleCollision(object, rect))
+    ) || playerFences.some(fence => circleRectCollide(object, fence)) ||
+      explodedMines.some(mine => checkRectangleCollision(object, mine));
+  }
+
+  if (isRegularAmmo || isBigAmmo) {
+    const radius = isRegularAmmo ? 5 : 15;
+
+    const projectileCollided = terrain[0].some(rect => checkCircleRectCollision(object, radius, rect)) ||
+      playerFences.some(fence => circleRectCollide(object, fence));
+
+    if (isRegularAmmo && projectileCollided) {
+      explodedProjectiles[0].push({
+        id: generateRandomId(),
+        playerId: object.id,
+        x: object.x,
+        y: object.y,
+        ammo: object.ammo,
+        hit: 'fence'
+      });
     }
 
-    // Check for collisions with player fences
-    for (let fence of playerFences) {
-      if (circleRectCollide(object, fence)) {
-        return true;
-      }
-    }
-
-    // Check for collisions with exploded mines
-    for (let mine of explodedMines) {
-      if (checkRectangleCollision(object, mine)) {
-        return true;
-      }
-    }
-
-    return false;
-  } else if (object.ammo === 'reg' || object.ammo === 'big') {
-
-    const radius = object.ammo === 'reg' ? 5 : 15;
-
-    // Check for collisions with terrain
-    for (let rect of terrain[0]) {
-      if(checkCircleRectCollision(object, radius, rect)){
-        object.ammo === 'reg' && explodedProjectiles[0].push({
-          id: generateRandomId(),
-          playerId: object.id,
-          x: object.x,
-          y: object.y,
-          ammo: object.ammo,
-          hit: 'fence'
-        });
-        return true;
-      }
-    }
-
-    // Check for collisions with player fences
-    for (let fence of playerFences) {
-      if (circleRectCollide(object, fence)) {
-        object.ammo === 'reg' && explodedProjectiles[0].push({
-          id: generateRandomId(),
-          playerId: object.id,
-          x: object.x,
-          y: object.y,
-          ammo: object.ammo,
-          hit: 'fence'
-        });
-        return true;
-      }
-    }
-
-    return false;
+    return projectileCollided;
   }
 
   return false;
 }
 
 
+
 function tick(){
+
     players.map((player)=> {
 
       //reg regen
@@ -472,7 +446,7 @@ function tick(){
         
         if(distance <= 50 && projectile.ammo === 'grenade' && projectile.timer <= 0 && !projectile.exploded){
 
-          player.health -= 10
+          player.health -= 20
           
           if(player.health <= 0){
             player.dead = true
@@ -613,8 +587,8 @@ async function main() {
         index: row * 100 + col,
         id: tile.id,
         gid: tile.gid,
-        x: col * TILE_SIZE + TILE_SIZE,
-        y: row * TILE_SIZE + TILE_SIZE,
+        x: col * TILE_SIZE,
+        y: row * TILE_SIZE,
         w: TILE_SIZE,
         h: TILE_SIZE
       };
@@ -758,25 +732,30 @@ async function main() {
           timer: 1000,
           radius: 10,
         });
-      } else if (player.ammo === 'grenade' && player.grenadeAmmo > 0) {
-        player.grenadeAmmo--;
-        radius = 10;
-        projectiles.push({
-          uniqueId: generateRandomId(),
-          id: socket.id,
-          angle: angle,
-          spin: angle,
-          x: player.x,
-          y: player.y,
-          ammo: player.ammo,
-          collide: false,
-          radius: radius,
-          timer: grenadeTimer,
-          exploded: false,
+      } else if (player.ammo === 'grenade') {
+
+        if(player.grenadeAmmo > 0){
+          player.grenadeAmmo--;
+          radius = 30;
+          projectiles.push({
+            uniqueId: generateRandomId(),
+            id: socket.id,
+            angle: angle,
+            spin: angle,
+            x: player.x,
+            y: player.y,
+            ammo: player.ammo,
+            collide: false,
+            radius: radius,
+            timer: grenadeTimer,
+            exploded: false,
         });
         clearInterval(grenadeIntervals[player.id]);
         player.grenadeTimer = 0;
-        return;
+        return;}
+
+        else{return clearInterval(grenadeIntervals[player.id]);
+}
       } else if (player.ammo === 'fence' && player.fenceAmmo > 0) {
         const fenceX = player.x + Math.cos(angle) * 60;
         const fenceY = player.y + Math.sin(angle) * 60;
